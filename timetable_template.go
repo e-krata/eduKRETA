@@ -86,12 +86,3 @@ func (s *Store) ExpandTemplates(from, to time.Time) []Lesson {
 	}
 	return out
 }
-
-func firstNonEmpty(vals ...string) string {
-	for _, v := range vals {
-		if strings.TrimSpace(v) != "" {
-			return v
-		}
-	}
-	return ""
-}
