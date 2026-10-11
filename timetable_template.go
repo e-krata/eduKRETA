@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"encoding/json"
 )
 
 // Órarend sablon
@@ -31,57 +32,44 @@ func (s *Store) GetTimetableTemplates() []TimetableTemplate {
 	)
 }
 
+// Set
 func (s *Store) SetTimetableTemplates(v []TimetableTemplate) {
-	if err := replaceCollection(
-		s.db,
-		"timetable_templates",
-		v,
-		func(x TimetableTemplate) string { return x.Uid },
-	); err != nil {
-		log.Printf("SetTimetableTemplates: %v", err)
+	ctx := context.Background()
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		log.Printf("SetTimetableTemplates begin: %v", err)
+		return
 	}
-}
+	defer tx.Rollback(ctx)
 
-func (s *Store) ExpandTemplates(from, to time.Time) []Lesson {
-	templates := s.GetTimetableTemplates()
-	teacher := s.GetTeacher()
-	out := make([]Lesson, 0)
+	if _, err := tx.Exec(ctx, `DELETE FROM timetable_templates`); err != nil {
+		log.Printf("SetTimetableTemplates delete: %v", err)
+		return
+	}
 
-	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
-		wd := int(d.Weekday()) // 0=vasárnap … 6=szombat
-		if wd == 0 {
-			wd = 7
+	for _, item := range v {
+		raw, err := json.Marshal(item)
+		if err != nil {
+			log.Printf("SetTimetableTemplates json: %v", err)
+			return
 		}
-		dateStr := d.Format("2006-01-02")
-
-		for _, t := range templates {
-			if t.Nap != wd {
-				continue
-			}
-			kezdet := t.KezdetIdo
-			veg := t.VegIdo
-			if len(kezdet) == 5 {
-				kezdet = kezdet + ":00"
-			}
-			if len(veg) == 5 {
-				veg = veg + ":00"
-			}
-			uid := fmt.Sprintf("TPL-%s-%d-%s", dateStr, t.Oraszam, t.OsztalyCsoportUid)
-			out = append(out, Lesson{
-				Uid:            uid,
-				Datum:          dateStr,
-				KezdetIdopont:  dateStr + "T" + kezdet,
-				VegIdopont:     dateStr + "T" + veg,
-				Nev:            firstNonEmpty(t.Nev, t.TantargyNev),
-				Oraszam:        t.Oraszam,
-				OsztalyCsoport: NameUid{Uid: t.OsztalyCsoportUid, Nev: t.OsztalyCsoportNev},
-				TanarNeve:      teacher.Nev,
-				Tantargy:       Subject{Uid: t.TantargyUid, Nev: t.TantargyNev},
-				TeremNeve:      t.TeremNeve,
-				Tipus:          NameUidDesc{Uid: "1", Nev: "Óra", Leiras: "Tanóra"},
-				Allapot:        NameUidDesc{Uid: "1", Nev: "Tervezett", Leiras: "Tervezett óra"},
-			})
+		uid := item.Uid
+		if uid == "" {
+			continue
+		}
+		// csak uid + data – nincs created_at / updated_at
+		if _, err := tx.Exec(ctx,
+			`INSERT INTO timetable_templates (uid, data) VALUES ($1, $2::jsonb)
+			 ON CONFLICT (uid) DO UPDATE SET data = EXCLUDED.data`,
+			uid, string(raw),
+		); err != nil {
+			log.Printf("SetTimetableTemplates insert: %v", err)
+			return
 		}
 	}
-	return out
+
+	if err := tx.Commit(ctx); err != nil {
+		log.Printf("SetTimetableTemplates commit: %v", err)
+	}
 }
