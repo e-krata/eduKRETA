@@ -239,6 +239,7 @@ func (s *Server) registerAdminRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/admin/teacher", s.requireAdmin(s.handleAdminTeacher))
 	mux.HandleFunc("/admin/students", s.requireAdmin(s.handleAdminStudents))
 	mux.HandleFunc("/admin/classgroups", s.requireAdmin(s.handleAdminClassGroups))
+	mux.HandleFunc("/admin/timetable-templates", s.requireAdmin(s.handleAdminTimetableTemplates))
 }
 
 // ============================================================
@@ -293,6 +294,30 @@ func (s *Server) handleAdminClassGroups(w http.ResponseWriter, r *http.Request) 
 			"success": true,
 			"count":   len(groups),
 			"groups":  s.store.GetClassGroups(),
+		})
+
+	default:
+		methodNotAllowed(w, "GET, PUT, POST")
+	}
+}
+
+// Órarend sablon
+func (s *Server) handleAdminTimetableTemplates(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		writeJSON(w, http.StatusOK, s.store.GetTimetableTemplates())
+
+	case http.MethodPut, http.MethodPost:
+		var list []TimetableTemplate
+		if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
+			return
+		}
+		s.store.SetTimetableTemplates(list)
+		writeJSON(w, http.StatusOK, map[string]any{
+			"success": true,
+			"count":   len(list),
+			"items":   s.store.GetTimetableTemplates(),
 		})
 
 	default:

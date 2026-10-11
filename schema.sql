@@ -189,3 +189,9 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
 
 -- Meglévő userek alapértelmezése
 UPDATE users SET role = 'Tanulo' WHERE role IS NULL OR role = '';
+
+-- Órarend sablon
+CREATE TABLE IF NOT EXISTS timetable_templates (
+  uid   TEXT PRIMARY KEY,
+  data  JSONB NOT NULL
+);

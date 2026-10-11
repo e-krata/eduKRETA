@@ -149,7 +149,47 @@ func (s *Server) handleTeacherStudents(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleTeacherTimetable(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		writeJSON(w, http.StatusOK, s.store.GetLessons())
+		now := time.Now()
+		offset := int(now.Weekday())
+		if offset == 0 {
+			offset = 7
+		}
+		from := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).
+			AddDate(0, 0, -(offset-1))
+		to := from.AddDate(0, 0, 6)
+
+		if f := r.URL.Query().Get("from"); f != "" {
+			if t, err := time.Parse("2006-01-02", f); err == nil {
+				from = t
+			}
+		}
+		if tStr := r.URL.Query().Get("to"); tStr != "" {
+			if t, err := time.Parse("2006-01-02", tStr); err == nil {
+				to = t
+			}
+		}
+
+		generated := s.store.ExpandTemplates(from, to)
+		manual := s.store.GetLessons()
+
+		byKey := map[string]Lesson{}
+		for _, l := range generated {
+			key := l.Datum + "|" + strconv.Itoa(l.Oraszam) + "|" + l.OsztalyCsoport.Uid
+			byKey[key] = l
+		}
+		for _, l := range manual {
+			if l.Datum < from.Format("2006-01-02") || l.Datum > to.Format("2006-01-02") {
+				continue
+			}
+			key := l.Datum + "|" + strconv.Itoa(l.Oraszam) + "|" + l.OsztalyCsoport.Uid
+			byKey[key] = l
+		}
+		out := make([]Lesson, 0, len(byKey))
+		for _, l := range byKey {
+			out = append(out, l)
+		}
+		writeJSON(w, http.StatusOK, out)
+
 	case http.MethodPost:
 		var req createLessonRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -162,6 +202,7 @@ func (s *Server) handleTeacherTimetable(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		writeJSON(w, http.StatusCreated, lesson)
+
 	case http.MethodPut:
 		var req createLessonRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -174,6 +215,7 @@ func (s *Server) handleTeacherTimetable(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		writeJSON(w, http.StatusOK, lesson)
+
 	case http.MethodDelete:
 		uid := strings.TrimSpace(r.URL.Query().Get("uid"))
 		if uid == "" {
@@ -192,11 +234,11 @@ func (s *Server) handleTeacherTimetable(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"success": true, "deleted": uid})
+
 	default:
 		methodNotAllowed(w, "GET, POST, PUT, DELETE")
 	}
 }
-
 type createLessonRequest struct {
 	Uid               string `json:"Uid"`
 	Datum             string `json:"Datum"`
