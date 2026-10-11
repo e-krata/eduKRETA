@@ -1,3 +1,14 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"strings"
+	"time"
+)
+
+// Órarend sablon
 type TimetableTemplate struct {
 	Uid               string `json:"Uid"`
 	Nap               int    `json:"Nap"` // 1=hétfő … 5=péntek
@@ -74,4 +85,13 @@ func (s *Store) ExpandTemplates(from, to time.Time) []Lesson {
 		}
 	}
 	return out
+}
+
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
