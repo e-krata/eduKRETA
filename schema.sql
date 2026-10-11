@@ -192,6 +192,8 @@ UPDATE users SET role = 'Tanulo' WHERE role IS NULL OR role = '';
 
 -- Órarend sablon
 CREATE TABLE IF NOT EXISTS timetable_templates (
-  uid   TEXT PRIMARY KEY,
-  data  JSONB NOT NULL
+  uid         TEXT PRIMARY KEY,
+  data        JSONB NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
