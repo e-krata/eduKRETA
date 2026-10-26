@@ -1,7 +1,7 @@
 /* KRÁTA e-Ügyintézés – üzenetek (táblázatos lista, mint a hivatalos modul) */
-const API_BASE = "https://ujkreta.onrender.com";
-const LOGIN_URL = "https://puspus-dev.github.io/ujkreta/";
-const DIAK_URL = "https://puspus-dev.github.io/ujkreta/diak/";
+const API_BASE = "https://edukreta.onrender.com";
+const LOGIN_URL = "https://e-krata.github.io/eduKRETA/";
+const DIAK_URL = "https://e-krata.github.io/eduKRETA/diak/";
 const TOKEN_KEYS = ["access_token", "ujkreta_access_token", "of_access_token", "teacher_access_token", "tanar_access_token", "diak_access_token"];
 const MSG_BASE = "/integration-kretamobile-api/v1/kommunikacio";
 
