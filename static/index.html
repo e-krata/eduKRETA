@@ -1,75 +1,902 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KRÁTA – Admin</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>eduKRÉTA</title>
+
+  <link
+    rel="stylesheet"
+    href="https://puspus-dev.github.io/ujkreta/src/old/main_style.css"
+  >
+
+  <!-- Mobilbarát login – a desktop kinézet változatlan -->
+  <style>
+    html { -webkit-text-size-adjust: 100%; }
+
+    .button {
+      min-height: 44px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      min-height: 44px;
+      font-size: 16px;
+    }
+
+    .action-row a {
+      display: inline-block;
+      padding: 10px 4px;
+      min-height: 44px;
+      line-height: 24px;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: env(safe-area-inset-bottom, 0);
+      }
+
+      .logo-header {
+        padding: 20px 0 8px;
+        flex-shrink: 0;
+      }
+
+      .logo-header img {
+        max-width: 120px;
+      }
+
+      .container {
+        margin: 12px 12px 0;
+        max-width: none;
+        width: auto;
+        flex: 0 0 auto;
+      }
+
+      .header {
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .content p {
+        margin: 0 0 10px;
+        line-height: 1.45;
+      }
+
+      .action-row {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .action-row .button {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+
+      .action-row a {
+        text-align: center;
+        order: 1;
+        width: 100%;
+      }
+
+      .idkwhat {
+        margin: 14px 12px 0;
+        max-width: none;
+        font-size: 0.85rem;
+        padding: 12px 14px;
+        line-height: 1.4;
+      }
+
+      /* A fixed footer ütközött a formmal / linkekkel */
+      footer {
+        position: static !important;
+        transform: none !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: auto !important;
+        margin: 16px 12px 24px;
+        padding: 12px 8px 20px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      footer p {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+
+      footer .hyperlink {
+        display: inline-block;
+        padding: 8px 10px;
+        color: #d0dce4;
+        text-decoration: underline;
+        word-break: break-word;
+      }
+
+      .modal-box {
+        width: calc(100% - 24px);
+        max-width: 100%;
+        margin: 12px;
+      }
+
+      .loading-box,
+      .fail-box {
+        margin-top: 14px;
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .header { font-size: 15px; }
+      .logo-header img { max-width: 100px; }
+    }
+  </style>
+
 </head>
+
 <body>
-  <div id="app">
-    <!-- Admin Basic Auth login -->
-    <div id="loginScreen" class="login-screen" style="display:none;">
-      <div class="login-card" style="max-width:420px;margin:40px auto;background:#fff;border:1px solid #c5d0dc;padding:28px;border-radius:4px;">
-        <div style="font-weight:800;font-size:18px;color:#004578;margin-bottom:4px;">KRÁTA Admin</div>
-        <div style="color:#5a6a7a;font-size:13px;margin-bottom:16px;">HTTP Basic – ADMIN_USERNAME / ADMIN_PASSWORD</div>
-        <label style="display:block;font-weight:650;margin-bottom:4px;">Felhasználónév</label>
-        <input id="adminUser" type="text" autocomplete="username" style="width:100%;padding:8px;margin-bottom:10px;border:1px solid #c5d0dc;" />
-        <label style="display:block;font-weight:650;margin-bottom:4px;">Jelszó</label>
-        <input id="adminPass" type="password" autocomplete="current-password" style="width:100%;padding:8px;margin-bottom:10px;border:1px solid #c5d0dc;" />
-        <div id="loginError" class="n-msg n-msg-err" style="display:none;"></div>
-        <button type="button" class="n-btn" id="adminLoginBtn" style="width:100%;">Belépés</button>
-      </div>
+
+<script>
+/*
+ * ============================================================
+ * KONFIGURÁCIÓ
+ * ============================================================
+ */
+
+const API_BASE = "https://edukreta.onrender.com";
+
+
+/*
+ * ============================================================
+ * LOGIN
+ * ============================================================
+ */
+
+async function login() {
+
+    const username =
+        document.getElementById("username_input").value.trim();
+
+    const password =
+        document.getElementById("password_input").value;
+
+    const instituteSelect =
+        document.getElementById("institute_select");
+
+    const instituteCode =
+        instituteSelect ? instituteSelect.value.trim() : "";
+
+    const loadingBox =
+        document.getElementById("loadingBox");
+
+    const failBox =
+        document.getElementById("failBox");
+
+    const loginText =
+        document.getElementById("logintxt");
+
+    const button =
+        document.querySelector(".action-row .button");
+
+
+    /*
+     * Korábbi hiba eltüntetése.
+     */
+
+    failBox.style.display = "none";
+
+
+    /*
+     * Üres mezők.
+     */
+
+    if (!instituteCode) {
+        failBox.innerText =
+            "Kérlek, válassz intézményt!";
+        failBox.style.display = "block";
+        return;
+    }
+
+    if (!username || !password) {
+
+        failBox.innerText =
+            "Kérlek, add meg a felhasználóneved és a jelszavad!";
+
+        failBox.style.display = "block";
+
+        return;
+    }
+
+
+    /*
+     * Loading.
+     */
+
+    loadingBox.style.display = "block";
+
+    if (button) {
+        button.disabled = true;
+    }
+
+
+    loginText.innerText =
+        "Kapcsolódás az eduKRÉTA szerverhez...";
+
+
+    try {
+
+        /*
+         * OAuth password grant.
+         *
+         * A jelszót csak HTTPS-en továbbítjuk.
+         * Nem mentjük localStorage-ba.
+         */
+
+        const body =
+            new URLSearchParams();
+
+        body.append(
+            "grant_type",
+            "password"
+        );
+
+        body.append(
+            "username",
+            username
+        );
+
+        body.append(
+            "password",
+            password
+        );
+
+        body.append(
+            "institute_code",
+            instituteCode
+        );
+
+
+        const response =
+            await fetch(
+                `${API_BASE}/connect/token`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+
+                    body: body.toString()
+                }
+            );
+
+
+        /*
+         * Szerverhiba.
+         */
+
+        if (!response.ok) {
+
+            let errorMessage =
+                "Sikertelen bejelentkezés.";
+
+            try {
+
+                const error =
+                    await response.json();
+
+                if (error.error_description) {
+
+                    errorMessage =
+                        error.error_description;
+
+                } else if (error.error) {
+
+                    errorMessage =
+                        error.error;
+
+                }
+
+            } catch (_) {
+                // A válasz nem JSON.
+            }
+
+            throw new Error(
+                errorMessage
+            );
+        }
+
+
+        /*
+         * Token.
+         */
+
+        const data =
+            await response.json();
+
+
+        if (!data.access_token) {
+
+            throw new Error(
+                "A szerver nem adott vissza hozzáférési tokent."
+            );
+        }
+
+
+        /*
+         * A token mentése.
+         *
+         * A jelszót NEM mentjük el.
+         * Több kulcsnéven is mentjük, hogy a diák frontend megtalálja.
+         */
+
+        localStorage.setItem(
+            "access_token",
+            data.access_token
+        );
+
+        localStorage.setItem(
+            "ujkreta_access_token",
+            data.access_token
+        );
+
+        if (data.refresh_token) {
+            localStorage.setItem(
+                "refresh_token",
+                data.refresh_token
+            );
+            localStorage.setItem(
+                "ujkreta_refresh_token",
+                data.refresh_token
+            );
+        }
+
+        localStorage.setItem(
+            "local_usr",
+            username
+        );
+
+        /*
+         * Szerepkör az id_token-ből (Tanar / Tanulo / Osztalyfonok).
+         */
+        let role = "Tanulo";
+        try {
+            if (data.id_token) {
+                const payload = data.id_token.split(".")[1];
+                const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+                const padded = b64 + "=".repeat((4 - b64.length % 4) % 4);
+                const claims = JSON.parse(atob(padded));
+                role = claims.role || claims["kreta:role"] || claims.Role || role;
+            }
+        } catch (_) {}
+
+        localStorage.setItem("ujkreta_role", role);
+        console.log("Login role:", role);
+
+        /*
+         * Régi, korábbi verzióból esetlegesen megmaradt
+         * jelszó törlése.
+         */
+
+        localStorage.removeItem(
+            "local_pw"
+        );
+
+
+        loginText.innerText =
+            "Sikeres bejelentkezés. Átirányítás...";
+
+
+        /*
+         * Osztályfőnök → /osztalyfonok, Tanár → /tanar, diák → /diak
+         */
+        const roleL = String(role).toLowerCase();
+        const isOF =
+            roleL.indexOf("osztalyfonok") !== -1 ||
+            roleL.indexOf("osztályfőnök") !== -1 ||
+            roleL === "of";
+        const isTeacher =
+            roleL.indexOf("tanar") !== -1 ||
+            roleL === "teacher";
+
+        if (isOF) {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/osztalyfonok/";
+        } else if (isTeacher) {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/tanar/";
+        } else {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/diak/";
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Login error:",
+            error
+        );
+
+
+        loginText.innerText =
+            "A szerver nem tudta feldolgozni a kérést.";
+
+
+        failBox.innerText =
+            error.message ||
+            "Ismeretlen hiba történt.";
+
+
+        failBox.style.display =
+            "block";
+
+
+    } finally {
+
+        setTimeout(
+            () => {
+                loadingBox.style.display =
+                    "none";
+            },
+            500
+        );
+
+
+        if (button) {
+            button.disabled = false;
+        }
+
+    }
+}
+
+
+/*
+ * ============================================================
+ * PASSWORD RESET MODAL
+ * ============================================================
+ */
+
+function reset_pw() {
+
+    document.getElementById(
+        "resetModal"
+    ).style.display = "flex";
+
+}
+
+
+function closeResetModal() {
+
+    document.getElementById(
+        "resetModal"
+    ).style.display = "none";
+
+}
+
+
+/*
+ * ============================================================
+ * SMALL LINK MODAL
+ * ============================================================
+ */
+
+function closemklinkModal() {
+
+    document.getElementById(
+        "mklinkModal"
+    ).style.display = "none";
+
+}
+
+
+/*
+ * ============================================================
+ * ENTER = LOGIN
+ * ============================================================
+ */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter" &&
+            (
+                document.activeElement?.id ===
+                    "username_input" ||
+
+                document.activeElement?.id ===
+                    "password_input"
+            )
+        ) {
+
+            event.preventDefault();
+
+            login();
+
+        }
+
+    }
+);
+
+
+/*
+ * ============================================================
+ * SESSION CHECK
+ * ============================================================
+ *
+ * Ha ezen az oldalon már van tokenünk,
+ * a felhasználó valószínűleg már bejelentkezett.
+ *
+ * Az old frontend nem tárol jelszót.
+ */
+
+function checkSession() {
+
+    const token =
+        localStorage.getItem(
+            "access_token"
+        ) ||
+        localStorage.getItem(
+            "ujkreta_access_token"
+        );
+
+
+    /*
+     * Régi jelszóadat törlése.
+     */
+
+    localStorage.removeItem(
+        "local_pw"
+    );
+
+
+    if (token) {
+
+        /*
+         * Aktív munkamenet → szerepkör szerint.
+         */
+
+        console.log(
+            "Aktív munkamenet található. Átirányítás..."
+        );
+
+        const role =
+            localStorage.getItem("ujkreta_role") || "";
+
+        const roleL = String(role).toLowerCase();
+        const isOF =
+            roleL.indexOf("osztalyfonok") !== -1 ||
+            roleL.indexOf("osztályfőnök") !== -1 ||
+            roleL === "of";
+        const isTeacher =
+            roleL.indexOf("tanar") !== -1 ||
+            roleL === "teacher";
+
+        if (isOF) {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/osztalyfonok/";
+        } else if (isTeacher) {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/tanar/";
+        } else {
+            window.location.href = "https://puspus-dev.github.io/ujkreta/diak/";
+        }
+
+    }
+
+}
+
+
+/*
+ * ============================================================
+ * INITIALIZATION
+ * ============================================================
+ */
+
+window.addEventListener(
+    "load",
+    function() {
+
+        checkSession();
+
+    }
+);
+
+</script>
+
+
+<!-- =========================================================
+     LOGO
+========================================================= -->
+
+<div class="logo-header">
+
+    <img
+        src="https://puspus-dev.github.io/ujkreta/src/logo.png"
+        alt="KRÁTA Logo"
+    >
+
+</div>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<div class="container">
+
+    <div
+        class="header"
+        id="title"
+    >
+        Üdvözlünk az eduKRÉTA naplóban!
     </div>
 
-    <div id="appShell" style="display:none;">
-      <header class="n-header">
-        <div class="n-header-left">
-          <button type="button" class="n-menu-toggle" id="menuBtn">☰</button>
-          <div class="n-logo">KRÁTA</div>
-          <div class="n-header-title">
-            <span class="n-system">Adminisztráció</span>
-            <span class="n-inst">Rendszerkezelés</span>
-          </div>
-        </div>
-        <div class="n-header-right">
-          <div class="n-user">
-            <span class="n-user-name" id="adminLabel">admin</span>
-            <span class="n-user-code">Basic Auth</span>
-          </div>
-          <button type="button" class="n-logout" id="logoutBtn">Kijelentkezés</button>
-        </div>
-      </header>
 
-      <div class="n-body">
-        <aside class="n-sidebar" id="sidebar">
-          <div class="n-sidebar-label">Admin menü</div>
-          <nav class="n-nav">
-            <button class="n-nav-item active" data-page="dashboard">Áttekintés</button>
-            <button class="n-nav-item" data-page="schools">Iskolák</button>
-            <button class="n-nav-item" data-page="students">Tanulók</button>
-            <button class="n-nav-item" data-page="studentForm">Új / szerkeszt diák</button>
-            <button class="n-nav-item" data-page="teachers">Tanárok</button>
-            <button class="n-nav-item" data-page="users">Felhasználók</button>
-            <button class="n-nav-item" data-page="config">Konfig</button>
-            <button class="n-nav-item" data-page="tools">Eszközök</button>
-          </nav>
-        </aside>
+    <div class="content">
 
-        <main class="n-main">
-          <div class="n-breadcrumb">
-            <span>KRÁTA Admin</span>
-            <span class="n-bc-sep">›</span>
-            <span id="bcPage">Áttekintés</span>
-          </div>
-          <h1 class="n-page-title" id="pageTitle">Áttekintés</h1>
-          <div id="pageContent"></div>
-        </main>
-      </div>
+        <p>
+            Kérjük, válassza ki az intézményt, majd
+            adja meg az eduKRÉTA felhasználónevét és jelszavát.
+        </p>
+
+
+        <p>
+            Ez az oldal az eduKRÉTA napló saját,
+            nem hivatalos felülete.
+        </p>
+
+
+        <!-- Intézményválasztó – a meglévő input stílust követi, layout változatlan -->
+        <select
+            id="institute_select"
+            style="width:100%; min-height:44px; font-size:16px; margin-bottom:10px; box-sizing:border-box;"
+            aria-label="Intézmény"
+        >
+            <option value="">Intézmény betöltése…</option>
+        </select>
+
+
+        <input
+            type="text"
+            placeholder="Felhasználónév"
+            id="username_input"
+            autocomplete="username"
+        >
+
+
+        <input
+            type="password"
+            placeholder="Jelszó"
+            id="password_input"
+            autocomplete="current-password"
+        >
+
+
+        <!-- Loading -->
+
+        <div
+            class="loading-box"
+            id="loadingBox"
+            style="display:none;"
+        >
+
+            <p id="logintxt">
+                Kapcsolódás...
+            </p>
+
+            <div class="spinner"></div>
+
+        </div>
+
+
+        <!-- Login failure -->
+
+        <div
+            class="fail-box"
+            id="failBox"
+            style="display:none;"
+        >
+            Sikertelen bejelentkezés.
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="action-row">
+
+            <a
+                href="#"
+                onclick="reset_pw(); return false;"
+            >
+                Elfelejtettem a jelszavam
+            </a>
+
+
+            <button
+                class="button"
+                onclick="login()"
+                type="button"
+            >
+                Bejelentkezés
+            </button>
+
+        </div>
+
     </div>
 
-    <div id="overlay" class="n-overlay" style="display:none;"></div>
-  </div>
-  <script src="app.js"></script>
+</div>
+
+
+<!-- =========================================================
+     PASSWORD RESET MODAL
+========================================================= -->
+
+<div
+    id="resetModal"
+    class="modal-overlay"
+    style="display:none;"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <span>
+                Jelszó visszaállítás
+            </span>
+
+
+            <button
+                onclick="closeResetModal()"
+                class="modal-close"
+                type="button"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div class="loader"></div>
+
+
+            <p>
+                A jelszó-visszaállítás jelenleg
+                nincs bekapcsolva ezen a rendszeren.
+            </p>
+
+
+            <p>
+                Ha nem tudsz bejelentkezni,
+                kérj segítséget az intézmény
+                rendszergazdájától.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SMALL LINK MODAL
+=========================================================
+
+     A régi GitHub-tokenes Small Link implementációt
+     szándékosan eltávolítottuk.
+
+     Ha később szükség lesz erre a funkcióra,
+     azt biztonságosan a saját backend API-n keresztül
+     lehet megvalósítani.
+========================================================= -->
+
+
+<!-- =========================================================
+     DISCLAIMER
+========================================================= -->
+
+<div class="idkwhat">
+
+
+    Ez az oldal kizárólag szatirikus céllal készült,
+    semmilyen kapcsolatban nincs a hivatalos KRÉTA rendszerrel.
+    <br>
+
+    A bejelentkezési adatok nem kerülnek mentésre
+    ezen az oldalon.
+    <br>
+
+    <strong>
+        Ne add meg a valódi KRÉTA bejelentkezési adataidat,
+        ha nem vagy biztos benne, hogy a saját tesztrendszeredhez
+        tartoznak!
+    </strong>
+
+</div>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer>
+
+    <p>
+
+        <a
+            href="https://github.com/e-kreten/e-kreten.github.com"
+            class="hyperlink"
+        >
+            Az eredeti oldal forráskódja
+        </a>
+
+        <span class="footer-sep">&nbsp;•&nbsp;</span>
+
+        Készült a SuliKód Verseny megbízásából.
+
+    </p>
+
+</footer>
+
+
+
+<script>
+/* Intézménylista betöltése a Neon/Postgres-ből */
+(async function loadInstitutions() {
+  const sel = document.getElementById("institute_select");
+  if (!sel) return;
+  try {
+    const res = await fetch(API_BASE + "/api/intezmenyek");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const list = await res.json();
+    sel.innerHTML = "";
+    if (!list || list.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Nincs elérhető intézmény";
+      sel.appendChild(opt);
+      return;
+    }
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Válassz intézményt…";
+    sel.appendChild(placeholder);
+    list.forEach(function (item) {
+      const opt = document.createElement("option");
+      opt.value = item.code;
+      opt.textContent = item.shortName
+        ? (item.shortName + " – " + item.name)
+        : item.name;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn("Intézménylista hiba:", e);
+    sel.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = "demo";
+    opt.textContent = "Demó (offline)";
+    sel.appendChild(opt);
+  }
+})();
+</script>
+
 </body>
 </html>
+

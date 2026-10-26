@@ -1,513 +1,241 @@
-
-.boot-msg {
-  min-height: 60vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 40px;
-  text-align: center;
-  color: var(--k-muted, var(--e-muted, #5a6a70));
-}
-.boot-spinner {
-  width: 60px;
-  height: 60px;
-  display: block;
-}
-.boot-text {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* ===== eKRÉTA helyi betűtípusok + menüikonok ===== */
-@font-face {
-  font-family: 'DejaVu Sans';
-  src: url('fonts/DejaVuSans.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'DejaVu Sans';
-  src: url('fonts/DejaVuSans-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Baar Sophia';
-  src: url('fonts/BAARS___.TTF') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Baar Sophia';
-  src: url('fonts/baarsb__.TTF') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-.menu-ico {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 4px;
-  /* színes eKRÉTA ikonok – nem invertáljuk */ filter: none;
-}
-.m-ico-img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 2px;
-  /* színes eKRÉTA ikonok – nem invertáljuk */ filter: none;
-}
-.k-nav-item .menu-ico,
-.n-nav-item .menu-ico {
-  margin-bottom: 4px;
-}
-
-/* KRÁTA – eKRÉTA stílus (sima CSS, build nélkül) */
-/* KRÁTA diák – hivatalos e-KRÉTA kinézet */
 :root {
-  --k-teal: #1a6b7c;
-  --k-teal-dark: #145a69;
-  --k-teal-mid: #2a8a9e;
-  --k-nav: #1e7385;
-  --k-bg: #e9eef1;
-  --k-panel: #fff;
-  --k-border: #c5d0d4;
-  --k-text: #222;
-  --k-muted: #5a6a70;
-  --k-link: #1a6b7c;
-  --k-grade: #1a6b7c;
-  --header-h: 48px;
-  --nav-h: 56px;
-  --font: "DejaVu Sans", Arial, sans-serif;
+  --bg: #0f1419;
+  --bg-elevated: #1a2332;
+  --bg-card: #1e2a3a;
+  --bg-sidebar: #121a24;
+  --border: rgba(255,255,255,0.08);
+  --text: #e8eef5;
+  --text-muted: #8b9bb0;
+  --accent: #2dd4bf;
+  --accent-dim: rgba(45,212,191,0.15);
+  --accent-hover: #5eead4;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --success: #34d399;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+  --sidebar-w: 260px;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; font-family: var(--font); background: var(--k-bg); color: var(--k-text); }
-button, input, select, textarea { font-family: inherit; }
 
-
-
-/* felső sáv – iskola + user */
-.k-top {
-  background: #fff;
-  border-bottom: 1px solid var(--k-border);
-  padding: 10px 16px 8px;
-  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
-  flex-wrap: wrap;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  overflow-x: hidden;
 }
-.k-school { font-size: 18px; font-weight: 700; color: #1a3a44; line-height: 1.25; }
-.k-year { font-size: 13px; color: var(--k-muted); margin-top: 2px; }
-.k-userbox { text-align: right; font-size: 13px; color: #333; }
-.k-userbox .name { font-weight: 650; }
-.k-userbox .meta { color: var(--k-muted); font-size: 12px; }
 
-/* teal nav */
-.k-nav {
-  background: linear-gradient(180deg, #218094 0%, var(--k-teal) 100%);
-  display: flex; align-items: stretch; overflow-x: auto;
-  min-height: var(--nav-h);
-  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+/* Boot */
+.boot-msg {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; background: var(--bg); z-index: 9999;
 }
-.k-nav-logo {
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 14px; background: rgba(0,0,0,.12);
-  color: #fff; font-weight: 800; letter-spacing: .04em; font-size: 14px;
-  white-space: nowrap; flex-shrink: 0;
-}
-.k-nav-logo span { font-size: 10px; display: block; opacity: .85; letter-spacing: .15em; }
-.k-nav-item {
-  border: none; background: transparent; color: #fff;
-  padding: 8px 14px; cursor: pointer; font-size: 12px; font-weight: 600;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; min-width: 72px; white-space: nowrap; opacity: .92;
-}
-.k-nav-item:hover { background: rgba(255,255,255,.12); }
-.k-nav-item.active { background: rgba(0,0,0,.18); opacity: 1; }
-.k-nav-item .ico { font-size: 18px; line-height: 1; }
+.boot-spinner { margin-bottom: 16px; }
+.boot-text { color: var(--text-muted); font-size: 15px; }
 
-.k-main { padding: 16px 18px 40px; max-width: 1400px; margin: 0 auto; }
-.k-page-title { margin: 0 0 12px; font-size: 20px; color: #1a3a44; }
-
-/* dashboard grid */
-.k-dash {
+/* Layout */
+#appShell {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: 64px 1fr;
+  min-height: 100vh;
 }
-@media (max-width: 1100px) { .k-dash { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .k-dash { grid-template-columns: 1fr; } }
+.main-header {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.main-menu {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  overflow-y: auto;
+}
+.main-content {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 28px 32px 48px;
+  overflow-y: auto;
+  max-width: 1200px;
+}
 
-.k-card {
-  background: var(--k-panel);
-  border: 1px solid var(--k-border);
-  border-radius: 2px;
-  overflow: hidden;
-  min-height: 140px;
+/* Brand / sidebar logo */
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--text);
+  padding: 8px 10px 20px; margin-bottom: 8px;
 }
-.k-card-h {
-  padding: 8px 12px;
-  font-size: 13px; font-weight: 650; color: var(--k-teal);
-  border-bottom: 1px solid var(--k-border);
-  background: #f7fafb;
-}
-.k-card-b { padding: 0; max-height: 280px; overflow-y: auto; }
-.k-card-empty { padding: 16px 12px; font-size: 13px; color: var(--k-muted); }
+.brand img { height: 28px; filter: brightness(1.1); }
+.brand-text { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+.brand-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 
-.k-grade-row {
+.nav-section {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--text-muted); text-transform: uppercase;
+  padding: 16px 12px 6px;
+}
+.k-nav-item, .main-menu button.k-nav-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 8px 12px; border-bottom: 1px solid #eef2f3;
-  font-size: 13px;
+  width: 100%; padding: 11px 14px;
+  border: none; background: transparent;
+  color: var(--text-muted); font-size: 14px; font-weight: 500;
+  border-radius: 12px; cursor: pointer; text-align: left;
+  transition: all 0.15s ease;
 }
-.k-grade-num {
-  font-size: 22px; font-weight: 800; color: var(--k-grade);
-  min-width: 28px; text-align: center;
+.k-nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.k-nav-item.active {
+  background: var(--accent-dim); color: var(--accent);
 }
-.k-grade-meta { color: var(--k-muted); font-size: 12px; line-height: 1.3; }
+.k-nav-item .menu-fa, .k-nav-item i { width: 20px; text-align: center; font-size: 15px; }
 
-/* faliújság timeline */
-.k-timeline {
-  background: #fff; border: 1px solid var(--k-border);
-  position: relative; margin-top: 8px;
+/* Header elements */
+.menu-toggle {
+  display: none; background: none; border: none; color: var(--text);
+  font-size: 22px; cursor: pointer; padding: 8px;
 }
-.k-tl-bar {
-  background: var(--k-teal-mid); color: #fff;
-  padding: 10px 14px; font-weight: 650; font-size: 14px;
+.school-title h3 { font-size: 15px; font-weight: 600; }
+.school-title span { font-size: 12px; color: var(--text-muted); }
+.usermenu {
+  margin-left: auto; display: flex; align-items: center; gap: 12px;
 }
-.k-tl-body { padding: 16px 18px 20px; min-height: 80px; color: var(--k-muted); font-size: 14px; }
-.k-tl-item {
-  border-left: 3px solid var(--k-teal-mid);
-  padding: 8px 0 8px 14px; margin: 8px 0;
-}
-.k-tl-item .t { font-weight: 650; color: #1a3a44; }
-.k-tl-item .d { font-size: 12px; color: var(--k-muted); }
-
-/* tables */
-.k-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
-.k-table th {
-  background: #f0f5f6; text-align: left; padding: 8px 10px;
-  border: 1px solid var(--k-border); font-weight: 650; color: #1a3a44;
-}
-.k-table td { padding: 8px 10px; border: 1px solid var(--k-border); }
-.k-table tr:nth-child(even) td { background: #fafcfc; }
-
-.k-panel {
-  background: #fff; border: 1px solid var(--k-border); padding: 14px;
-  margin-bottom: 12px;
-}
+.username { font-size: 14px; font-weight: 500; }
+.usercode { font-size: 12px; color: var(--text-muted); }
 .k-logout {
-  border: 1px solid var(--k-border); background: #fff; padding: 4px 10px;
-  font-size: 12px; cursor: pointer; margin-left: 8px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 8px 14px; border-radius: 10px;
+  font-size: 13px; cursor: pointer; transition: 0.15s;
+}
+.k-logout:hover { background: rgba(248,113,113,0.15); color: var(--danger); }
+
+/* Cards – KRETÉN style */
+.card, .k-card, .dash-card, .grade-card, .lesson-card, .info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.card-title, .section-title {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px; margin-bottom: 24px;
+}
+.hello {
+  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.hello-sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+/* Grade pills */
+.grade-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  font-weight: 700; font-size: 16px;
+  background: var(--accent-dim); color: var(--accent);
+}
+.grade-pill.g5 { background: rgba(52,211,153,0.2); color: var(--success); }
+.grade-pill.g4 { background: rgba(45,212,191,0.2); color: var(--accent); }
+.grade-pill.g3 { background: rgba(251,191,36,0.2); color: var(--warning); }
+.grade-pill.g2, .grade-pill.g1 { background: rgba(248,113,113,0.2); color: var(--danger); }
+
+/* Lists */
+.list-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.list-row:last-child { border-bottom: none; }
+.list-time { font-size: 13px; color: var(--text-muted); min-width: 90px; font-variant-numeric: tabular-nums; }
+.list-title { font-weight: 600; font-size: 14px; }
+.list-meta { font-size: 12px; color: var(--text-muted); }
+.badge {
+  font-size: 11px; padding: 4px 10px; border-radius: 8px;
+  background: rgba(255,255,255,0.06); color: var(--text-muted);
 }
 
-/* mobile bottom */
+/* Average big number */
+.avg-big {
+  font-size: 48px; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.04em; line-height: 1.1;
+}
+.avg-label { font-size: 13px; color: var(--text-muted); }
+
+/* Mobile bottom nav */
 .m-bottom-nav {
-  display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--k-teal); border-top: 1px solid var(--k-teal-dark);
-  z-index: 40; padding-bottom: env(safe-area-inset-bottom, 0);
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-elevated); border-top: 1px solid var(--border);
+  padding: 8px 4px env(safe-area-inset-bottom);
+  z-index: 100;
 }
 .m-tab {
-  flex: 1; border: none; background: transparent; color: #fff;
-  padding: 8px 4px; font-size: 10px; display: flex; flex-direction: column;
-  align-items: center; gap: 2px; opacity: .85;
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; background: none; border: none; color: var(--text-muted);
+  font-size: 10px; padding: 6px; cursor: pointer;
 }
-.m-tab.active { opacity: 1; background: rgba(0,0,0,.15); }
-.m-ico { font-size: 16px; }
-@media (max-width: 700px) {
-  .m-bottom-nav { display: flex; }
-  .k-main { padding-bottom: 72px; }
-  .k-nav-item .lbl-full { display: none; }
+.m-tab.active { color: var(--accent); }
+.m-tab i { font-size: 18px; }
+
+/* Overlay / sidebar mobile */
+.n-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40;
 }
 
-/* ===== eKRÉTA skin – csak megjelenés (diák / tanár / osztályfőnök / e-Ügyintézés) =====
-   Színek és betűk az eredeti eKRÉTA stíluslapból (wkrataMVC.css):
-   menü #406a7c · hover #518094 · aktív #385765 · kiemelő #54a5d1 · háttér #e5e9ec · keret #c5d3e2 */
-
-:root {
-  --ek-nav: #406a7c; --ek-nav-h: #518094; --ek-nav-a: #385765;
-  --ek-blue: #54a5d1; --ek-blue-d: #4b94bb; --ek-cyan: #30a8cb;
-  --ek-bg: #e5e9ec; --ek-line: #c5d3e2; --ek-row: #f4f4f4;
-  --ek-text: #445261; --ek-title: #3c4a59; --ek-mute: #7c8a99; --ek-red: #dd4b39;
-  /* a meglévő változók felülírása */
-  --k-teal: var(--ek-nav); --k-teal-dark: var(--ek-nav-a); --k-teal-mid: var(--ek-blue);
-  --k-nav: var(--ek-nav); --k-bg: var(--ek-bg); --k-border: var(--ek-line);
-  --k-text: var(--ek-text); --k-muted: var(--ek-mute); --k-link: var(--ek-blue-d);
-  --k-grade: var(--ek-blue-d); --k-side: var(--ek-nav); --k-btn: var(--ek-blue); --k-btn-red: var(--ek-red);
-  --e-header: var(--ek-nav); --e-header-dark: var(--ek-nav-a); --e-accent: var(--ek-blue);
-  --e-bg: var(--ek-bg); --e-border: var(--ek-line); --e-text: var(--ek-text);
-  --e-muted: var(--ek-mute); --e-link: var(--ek-blue-d); --e-unread-bg: #e0f7fa;
-  --font: "DejaVu Sans", Arial, sans-serif;
-}
-html, body { font-family: "DejaVu Sans", Arial, sans-serif; background: var(--ek-bg); color: var(--ek-text); }
-h1, h2, h3, .k-h, .k-page-title, .e-page-title, .n-page-title { font-family: "Roboto Condensed", "DejaVu Sans", sans-serif; color: var(--ek-title); font-weight: 400; }
-a { color: var(--ek-blue-d); }
-
-/* ---- fejléc (fehér, 60px, iskolanév #406a7c) ---- */
-.k-top, .e-topbar { background: #fff; border-bottom: 1px solid var(--ek-line); min-height: 60px; padding: 8px 20px; align-items: center; }
-.k-school, .e-topbar .brand { font-family: "Baar Sophia", "DejaVu Sans", sans-serif; font-size: 20px; font-weight: 400; color: var(--ek-nav); letter-spacing: 0; }
-.e-topbar .brand small { font-family: "DejaVu Sans", sans-serif; color: var(--ek-mute); letter-spacing: 0; font-weight: 400; }
-.k-year { color: var(--ek-mute); }
-.k-userbox, .e-user { color: var(--ek-text); }
-.k-logout, .e-user button { background: #fff; border: 1px solid var(--ek-line); color: var(--ek-text); border-radius: 0; padding: 5px 12px; }
-.k-logout:hover, .e-user button:hover { background: var(--ek-bg); }
-
-/* ---- főmenü (lapos, 60px, elválasztó vonalak) ---- */
-.k-nav, .e-nav { background: var(--ek-nav); box-shadow: none; border: 0; min-height: 60px; }
-.k-nav-logo { background: var(--ek-nav-a); font-family: "Baar Sophia", "DejaVu Sans", sans-serif; letter-spacing: .06em; }
-.k-nav-item, .e-nav-item { background: var(--ek-nav); border-right: 1px solid rgba(255,255,255,.1); border-radius: 0; opacity: 1; font-weight: 600; transition: background .2s ease; }
-.k-nav-item { min-width: 110px; font-size: 12px; }
-.k-nav-item:hover, .e-nav-item:hover { background: var(--ek-nav-h); }
-.k-nav-item.active, .e-nav-item.active, .k-nav-item:active { background: var(--ek-nav-a); }
-
-/* ---- tartalom, panelek ---- */
-.k-main, .e-main { color: var(--ek-text); }
-.k-panel, .e-panel, .e-detail, .n-panel, .k-card, .k-timeline, .g-matrix-wrap, .naplo-layout {
-  background: #fff; border: 1px solid var(--ek-line); border-radius: 0; box-shadow: none;
-}
-.k-card-h, .n-panel-head, .naplo-title { background: #fff; border-bottom: 1px solid var(--ek-line); color: var(--ek-title); font-weight: 600; }
-.k-tl-bar { background: var(--ek-blue); }
-.k-tl-item { border-left-color: var(--ek-blue); }
-.k-tl-item .t, .k-name { color: var(--ek-title); }
-.k-grade-num { color: var(--ek-blue-d); }
-.k-grade-row, .k-list li { border-bottom-color: #e5e9ec; }
-
-/* ---- gombok (Kendo .k-button / .k-primary) ---- */
-.k-btn, .e-btn, .n-btn, .n-btn-secondary, .g-quick button {
-  background: #f4f4f4; border: 1px solid #c5d3e2; color: var(--ek-text); border-radius: 0; font-weight: 600; cursor: pointer;
-}
-.k-btn:hover, .e-btn:hover, .n-btn:hover, .n-btn-secondary:hover, .g-quick button:hover { background: #e5e9ec; }
-.k-btn-primary, .e-btn-primary, .n-btn:not(.n-btn-secondary), .k-btn-teal { background: var(--ek-blue); border-color: var(--ek-blue); color: #fff; }
-.k-btn-primary:hover, .e-btn-primary:hover, .n-btn:not(.n-btn-secondary):hover, .k-btn-teal:hover { background: var(--ek-blue-d); border-color: var(--ek-blue-d); }
-.k-btn-danger { background: var(--ek-red); border-color: var(--ek-red); color: #fff; }
-
-/* ---- űrlapmezők ---- */
-input, select, textarea, .e-search { border: 1px solid #c5d3e2 !important; border-radius: 0; background: #fff; color: var(--ek-text); font-family: inherit; }
-input:focus, select:focus, textarea:focus, .e-search:focus { outline: 0; border-color: var(--ek-blue) !important; box-shadow: 0 0 0 2px rgba(84,165,209,.25); }
-.hw-form label, .e-form label, .n-form-grid label { color: var(--ek-title); font-weight: 600; }
-
-/* ---- táblázatok (Kendo grid: kék fejléc, szürke páratlan sor) ---- */
-.k-table th, .n-table th, .e-table th, .g-matrix th, .att-table th {
-  background: var(--ek-blue); border-color: var(--ek-blue-d); color: #fff; font-weight: 600; text-align: left;
-}
-.g-matrix th { text-align: center; }
-.k-table td, .n-table td, .e-table td, .g-matrix td, .att-table td { border-color: var(--ek-line); color: var(--ek-text); }
-.k-table tbody tr:nth-child(odd) td, .n-table tbody tr:nth-child(odd) td, .att-table tbody tr:nth-child(odd) td { background: #fff; }
-.k-table tbody tr:nth-child(even) td, .n-table tbody tr:nth-child(even) td, .att-table tbody tr:nth-child(even) td, .att-table tr:nth-child(even) { background: var(--ek-row); }
-.k-table tbody tr:hover td, .n-table tbody tr:hover td, .e-table tr:hover td { background: #e0f7fa; }
-.e-table tr.unread td { background: #e0f7fa; }
-.e-table tr.active td { background: #c5e6f4; }
-.e-table .subj { color: var(--ek-blue-d); }
-.att-table tr.hl { background: #e0f7fa; }
-
-/* ---- oldalsáv (e-Ügyintézés, naplózás) ---- */
-.e-sidebar { background: #fff; border-right: 1px solid var(--ek-line); }
-.e-side-label { color: var(--ek-mute); }
-.e-nav-btn { color: var(--ek-text); }
-.e-nav-btn:hover { background: var(--ek-bg); }
-.e-nav-btn.active { background: #e0f7fa; color: var(--ek-nav); border-left-color: var(--ek-blue); }
-.e-badge { background: var(--ek-cyan); }
-.naplo-side { background: var(--ek-nav); }
-.naplo-side button.active, .naplo-side button:hover { background: var(--ek-nav-a); }
-.seg { border-radius: 0; border-color: var(--ek-line); }
-.seg button.on-j { background: var(--ek-blue); }
-.seg button.on-h { background: var(--ek-nav); }
-.ico-row { color: var(--ek-blue-d); }
-.e-toolbar { background: #f4f4f4; border-bottom-color: var(--ek-line); }
-.e-detail-text { background: #f4f4f4; border-color: var(--ek-line); }
-
-/* ---- jegyek: eKRÉTA-szerű kis négyzetek ---- */
-.g-chip, .n-grade { border-radius: 0; font-weight: 700; }
-.g-chip.g5, .n-grade-5 { background: #d9f0d4; color: #2e7d32; }
-.g-chip.g4, .n-grade-4 { background: #e8f3cf; color: #558b2f; }
-.g-chip.g3, .n-grade-3 { background: #ffecc7; color: #b26a00; }
-.g-chip.g2, .n-grade-2, .g-chip.g1, .n-grade-1 { background: #fbd9d4; color: var(--ek-red); }
-
-/* ---- n-* komponensek (a többi UI-ban nincs rájuk stílus) ---- */
-.n-panel { margin-bottom: 12px; }
-.n-panel-head { padding: 10px 14px; font-size: 14px; }
-.n-panel-body { padding: 14px; }
-.n-grid, .n-grid-2, .n-grid-4 { display: grid; gap: 12px; margin-bottom: 12px; }
-.n-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-.n-grid-2 { grid-template-columns: 1fr 1fr; }
-.n-grid-4 { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 800px) { .n-grid-2, .n-grid-4 { grid-template-columns: 1fr; } }
-.n-stat { background: #fff; border: 1px solid var(--ek-line); border-top: 3px solid var(--ek-blue); padding: 12px 14px; }
-.n-stat-label { font-size: 12px; color: var(--ek-mute); text-transform: uppercase; }
-.n-stat-value { font-family: "Baar Sophia", "DejaVu Sans", sans-serif; font-size: 28px; color: var(--ek-blue-d); }
-.n-welcome { background: var(--ek-nav); color: #fff; padding: 16px 20px; margin-bottom: 12px; }
-.n-welcome h2 { color: #fff; margin: 0 0 4px; }
-.n-table-wrap { overflow-x: auto; }
-.n-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
-.n-table th, .n-table td { padding: 8px 10px; border: 1px solid var(--ek-line); }
-.n-list { margin: 0; padding: 0; list-style: none; }
-.n-list li { padding: 8px 0; border-bottom: 1px solid var(--ek-bg); }
-.n-list-title, .n-lesson-subj { font-weight: 600; color: var(--ek-title); }
-.n-list-meta, .n-lesson-meta, .n-lesson-time { color: var(--ek-mute); font-size: 12px; }
-.n-lesson { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ek-bg); }
-.n-lesson-num { font-weight: 700; color: var(--ek-blue-d); min-width: 24px; }
-.n-badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 700; background: #e0f7fa; color: #00acc1; }
-.n-badge-ok { background: #d9f0d4; color: #2e7d32; }
-.n-badge-warn { background: #ffecc7; color: #b26a00; }
-.n-badge-bad { background: #fbd9d4; color: var(--ek-red); }
-.n-empty, .k-card-empty, .e-empty { color: var(--ek-mute); padding: 16px; text-align: center; }
-.n-kv { display: grid; grid-template-columns: 180px 1fr; }
-.n-kv div { padding: 8px 0; border-bottom: 1px solid var(--ek-bg); }
-.n-kv .k { color: var(--ek-mute); }
-.n-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.n-form-grid label { display: grid; gap: 4px; font-size: 12px; }
-.n-form-actions { display: flex; gap: 8px; margin-top: 12px; }
-.n-overlay { position: fixed; inset: 0; background: rgba(60,74,89,.55); z-index: 100; }
-
-/* ---- üzenetek ---- */
-.msg.ok, .e-ok { color: #2e7d32; }
-.msg.bad, .e-error { color: var(--ek-red); }
-.e-error { background: #fbd9d4; border-color: #f0b3aa; }
-.e-ok { background: #d9f0d4; border-color: #b4dcab; }
-
-/* ---- mobil alsó sáv (diák) ---- */
-.m-bottom-nav { background: var(--ek-nav); border-top: 1px solid var(--ek-nav-a); }
-.m-tab.active { background: var(--ek-nav-a); }
-@media (max-width: 700px) { .k-nav-item { min-width: 72px; } }
-
-/* ===== eKRÉTA elrendezés: fejléc + főmenü + tartalom ===== */
-.main-header { display: flex; align-items: center; gap: 16px; background: #fff; border-bottom: 1px solid var(--ek-line); min-height: 60px; padding: 0 20px; }
-.main-header .brand { display: block; flex-shrink: 0; }
-.main-header .brand img { height: 32px; display: block; }
-.school-title { flex: 1; min-width: 0; }
-.school-title h3 { margin: 0; font: 400 20px "Baar Sophia", "DejaVu Sans", sans-serif; color: var(--ek-nav); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.school-title span { font-size: 12px; color: var(--ek-mute); }
-.usermenu { display: flex; align-items: center; gap: 10px; font-size: 13px; flex-shrink: 0; }
-.usermenu .username { font-weight: 600; color: var(--ek-title); }
-.usermenu .usercode { color: var(--ek-mute); font-size: 12px; }
-.usermenu a.k-logout { text-decoration: none; color: var(--ek-text); margin-left: 0; }
-.menu-toggle { display: none; border: 1px solid var(--ek-line); background: #fff; font-size: 20px; line-height: 1; padding: 6px 10px; cursor: pointer; color: var(--ek-nav); }
-
-.main-menu { background: var(--ek-nav); display: flex; overflow-x: auto; }
-.main-menu .k-nav-item, .main-menu .n-nav-item {
-  flex: 0 0 auto; min-width: 120px; height: 60px; border: 0; border-right: 1px solid rgba(255,255,255,.1);
-  background: var(--ek-nav); color: #fff; font: 600 12px "DejaVu Sans", sans-serif; padding: 6px 14px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  cursor: pointer; white-space: nowrap; transition: background .2s ease;
-}
-.main-menu .ico { font-size: 18px; line-height: 1; }
-.main-menu .k-nav-item:hover, .main-menu .n-nav-item:hover { background: var(--ek-nav-h); }
-.main-menu .k-nav-item.active, .main-menu .n-nav-item.active { background: var(--ek-nav-a); box-shadow: inset 0 -3px 0 var(--ek-blue); }
-
-.main-content { max-width: 1400px; margin: 0 auto; padding: 0 20px 40px; }
-.content-header { display: flex; align-items: baseline; gap: 12px; padding: 18px 0 10px; border-bottom: 1px solid var(--ek-line); margin-bottom: 16px; }
-.content-header h1 { margin: 0; font: 400 24px "Baar Sophia", "DejaVu Sans", sans-serif; color: var(--ek-title); }
-.content-header .bc { font-size: 12px; color: var(--ek-mute); }
-.main-content > #pageContent { padding-top: 16px; }
-.content-header + #pageContent { padding-top: 0; }
-
-.n-overlay { display: none; }
-.n-overlay.show { display: block; }
-
-/* ===== jegykönyv (tanár / osztályfőnök) ===== */
-.k-filters, .k-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.k-filters select, .k-filters input, .k-toolbar select, .k-toolbar input { min-height: 34px; padding: 5px 8px; font-size: 13px; }
-.k-btn-type.active { background: var(--ek-nav); border-color: var(--ek-nav); color: #fff; }
-.k-book { background: #fff; border: 1px solid var(--ek-line); overflow-x: auto; margin-bottom: 12px; }
-.k-book table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.k-book th { background: var(--ek-blue); color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; }
-.k-book td { padding: 6px 10px; border-bottom: 1px solid var(--ek-line); vertical-align: middle; }
-.k-book tbody tr:nth-child(even) td { background: var(--ek-row); }
-.k-book tbody tr:hover td { background: #e0f7fa; }
-.k-num { width: 36px; color: var(--ek-mute); text-align: center; }
-.k-avg { font-weight: 700; color: var(--ek-blue-d); text-align: center; white-space: nowrap; }
-.k-grades-cell { min-width: 120px; }
-.k-quick { display: inline-flex; gap: 3px; }
-.k-q { min-width: 28px; height: 28px; padding: 0 6px; border: 1px solid var(--ek-line); background: #fff; color: var(--ek-text); font-weight: 700; font-size: 12px; cursor: pointer; }
-.k-q:hover { background: #e0f7fa; }
-.k-q.k-selected { background: var(--ek-blue); border-color: var(--ek-blue-d); color: #fff; }
-.k-g { display: inline-block; min-width: 24px; padding: 2px 6px; margin: 1px; font-weight: 700; text-align: center; cursor: pointer; background: #e5e9ec; color: var(--ek-text); }
-.k-g-5 { background: #d9f0d4; color: #2e7d32; }
-.k-g-4 { background: #e8f3cf; color: #558b2f; }
-.k-g-3 { background: #ffecc7; color: #b26a00; }
-.k-g-2, .k-g-1 { background: #fbd9d4; color: var(--ek-red); }
-.k-g:hover { outline: 2px solid var(--ek-blue); }
-.k-status { margin-top: 10px; padding: 10px 12px; background: #fff; border: 1px solid var(--ek-line); border-left: 4px solid var(--ek-blue); font-size: 13px; }
-.k-status.ok, .k-status.success { border-left-color: #4caf50; }
-.k-status.err, .k-status.bad, .k-status.error { border-left-color: var(--ek-red); color: var(--ek-red); }
-
-/* ===== mobil: a főmenü kihúzható oldalsáv ===== */
 @media (max-width: 900px) {
-  .menu-toggle { display: block; }
-  .usermenu .usercode, .usermenu .username { display: none; }
+  #appShell { grid-template-columns: 1fr; grid-template-rows: 56px 1fr; }
   .main-menu {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 260px; z-index: 120; flex-direction: column;
-    overflow-y: auto; transform: translateX(-100%); transition: transform .2s ease;
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+    transform: translateX(-100%); transition: transform 0.25s ease; z-index: 60;
   }
-  .main-menu.open { transform: none; }
-  .main-menu .k-nav-item, .main-menu .n-nav-item {
-    width: 100%; height: auto; min-width: 0; flex-direction: row; justify-content: flex-start;
-    gap: 12px; padding: 14px 18px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 14px;
-  }
-  .main-content { padding: 0 12px 40px; }
-}
-@media (min-width: 901px) { .n-overlay, .n-overlay.show { display: none !important; } }
-@media (max-width: 700px) { .main-content { padding-bottom: 76px; } }
-
-.main-menu .menu-ico, .main-menu .n-nav-item .menu-ico, .main-menu .k-nav-item .menu-ico {
-  width: 22px; height: 22px; object-fit: contain; display: block; margin: 0 auto 3px;
-  /* színes eKRÉTA ikonok – nem invertáljuk */ filter: none;
+  .main-menu.open { transform: translateX(0); }
+  .main-header { grid-column: 1; }
+  .main-content { grid-column: 1; padding: 20px 16px 90px; }
+  .menu-toggle { display: block; }
+  .m-bottom-nav { display: flex; }
+  .brand { display: none; }
+  .main-menu .brand { display: flex; }
 }
 
-.doc-row-ico {
-  width: 18px; height: 18px; object-fit: contain;
-  vertical-align: middle; margin-right: 6px;
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Buttons */
+.btn, button.primary {
+  background: var(--accent); color: #0f1419; border: none;
+  padding: 10px 18px; border-radius: 10px; font-weight: 600;
+  font-size: 14px; cursor: pointer;
+}
+.btn:hover, button.primary:hover { background: var(--accent-hover); }
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); padding: 8px 14px; border-radius: 10px; cursor: pointer;
 }
 
+/* Inputs in app */
+input, select, textarea {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 10px 14px; border-radius: 10px; font-size: 14px; width: 100%;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
 
-/* DKT layout */
-.dkt-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-@media (max-width: 800px) {
-  .dkt-layout { grid-template-columns: 1fr; }
-}
-.dkt-side { min-width: 0; }
-.dkt-cards {
-  display: flex; flex-direction: column; gap: 0;
-  border: 1px solid var(--ek-line, #c5d3e2);
-  background: #fff;
-  max-height: 70vh; overflow-y: auto;
-}
-.dkt-card {
-  display: block; width: 100%; text-align: left;
-  border: 0; border-bottom: 1px solid var(--ek-line, #c5d3e2);
-  background: #fff; padding: 12px 14px; cursor: pointer;
-  color: var(--ek-text, #445261);
-}
-.dkt-card:hover { background: #e0f7fa; }
-.dkt-card-active {
-  background: #e0f7fa;
-  border-left: 3px solid var(--ek-blue, #54a5d1);
-}
-.dkt-card-ico {
-  width: 22px; height: 22px; object-fit: contain;
-  vertical-align: middle; margin-right: 8px;
-}
-.dkt-card-title { font-weight: 700; font-size: 13px; margin-top: 4px; }
-.dkt-card-meta { font-size: 12px; color: var(--ek-mute, #7c8a99); margin-top: 2px; }
-.dkt-files-head {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
-}
-.dkt-main { min-width: 0; }
-
-/* FontAwesome menü */
-.main-menu .menu-fa { color: #fff; }
-.m-bottom-nav .fa { font-size: 16px; display: block; margin: 0 auto 2px; }
-.m-tab { display: flex; flex-direction: column; align-items: center; }
+/* Keep compatibility with old class names from app.js */
+.k-page-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+.k-section { margin-bottom: 28px; }
+.loading, .empty { color: var(--text-muted); text-align: center; padding: 40px; }

@@ -258,13 +258,14 @@ type ServerConfig struct {
 	A PasswordHash soha nem kerül vissza az API válaszába.
 */
 type User struct {
-	ID           string    `json:"id"`
-	Username     string    `json:"username"`
-	PasswordHash string    `json:"-"`
-	StudentUID   string    `json:"studentUid"`
-	Role         string    `json:"role"`
-	Active       bool      `json:"active"`
-	CreatedAt    time.Time `json:"createdAt"`
+	ID            string    `json:"id"`
+	Username      string    `json:"username"`
+	PasswordHash  string    `json:"-"`
+	StudentUID    string    `json:"studentUid"`
+	Role          string    `json:"role"`
+	InstituteCode string    `json:"instituteCode,omitempty"`
+	Active        bool      `json:"active"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type storeData struct {

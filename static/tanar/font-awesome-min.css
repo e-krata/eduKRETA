@@ -1,0 +1,49 @@
+/* Font Awesome 4 (helyi) – eKRÉTA menüikonok */
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('fonts/fontawesome-webfont.woff2') format('woff2'),
+       url('fonts/fontawesome-webfont.woff') format('woff'),
+       url('fonts/fontawesome-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+.fa {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.fa-2x { font-size: 1.6em; }
+.menu-fa {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+  margin: 0 auto 4px;
+  text-align: center;
+}
+.fa-home:before { content: "\f015"; }
+.fa-calendar:before { content: "\f073"; }
+.fa-calendar-check-o:before { content: "\f274"; }
+.fa-list-alt:before { content: "\f022"; }
+.fa-list:before { content: "\f03a"; }
+.fa-clock-o:before { content: "\f017"; }
+.fa-info-circle:before { content: "\f05a"; }
+.fa-book:before { content: "\f02d"; }
+.fa-envelope:before { content: "\f0e0"; }
+.fa-folder-open:before { content: "\f07c"; }
+.fa-folder:before { content: "\f07b"; }
+.fa-th-large:before { content: "\f009"; }
+.fa-user:before { content: "\f007"; }
+.fa-users:before { content: "\f0c0"; }
+.fa-pencil:before { content: "\f040"; }
+.fa-bar-chart:before { content: "\f080"; }
+.fa-graduation-cap:before { content: "\f19d"; }
+.fa-plus:before { content: "\f067"; }
+.fa-refresh:before { content: "\f021"; }
+.fa-comments:before { content: "\f086"; }
+.fa-file-text-o:before { content: "\f0f6"; }
+.fa-check-square-o:before { content: "\f046"; }
+.fa-user-plus:before { content: "\f234"; }

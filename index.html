@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>KRÁTA</title>
+  <title>eduKRÉTA</title>
 
   <link
     rel="stylesheet"
@@ -175,6 +175,12 @@ async function login() {
     const password =
         document.getElementById("password_input").value;
 
+    const instituteSelect =
+        document.getElementById("institute_select");
+
+    const instituteCode =
+        instituteSelect ? instituteSelect.value.trim() : "";
+
     const loadingBox =
         document.getElementById("loadingBox");
 
@@ -199,6 +205,13 @@ async function login() {
      * Üres mezők.
      */
 
+    if (!instituteCode) {
+        failBox.innerText =
+            "Kérlek, válassz intézményt!";
+        failBox.style.display = "block";
+        return;
+    }
+
     if (!username || !password) {
 
         failBox.innerText =
@@ -222,7 +235,7 @@ async function login() {
 
 
     loginText.innerText =
-        "Kapcsolódás a KRÁTA szerverhez...";
+        "Kapcsolódás az eduKRÉTA szerverhez...";
 
 
     try {
@@ -250,6 +263,11 @@ async function login() {
         body.append(
             "password",
             password
+        );
+
+        body.append(
+            "institute_code",
+            instituteCode
         );
 
 
@@ -624,22 +642,32 @@ window.addEventListener(
         class="header"
         id="title"
     >
-        Üdvözlünk a KRÁTA naplóban!
+        Üdvözlünk az eduKRÉTA naplóban!
     </div>
 
 
     <div class="content">
 
         <p>
-            Kérjük, adja meg az intézményi KRÁTA
-            felhasználónevét és jelszavát.
+            Kérjük, válassza ki az intézményt, majd
+            adja meg az eduKRÉTA felhasználónevét és jelszavát.
         </p>
 
 
         <p>
-            Ez az oldal a KRÁTA napló saját,
+            Ez az oldal az eduKRÉTA napló saját,
             nem hivatalos felülete.
         </p>
+
+
+        <!-- Intézményválasztó – a meglévő input stílust követi, layout változatlan -->
+        <select
+            id="institute_select"
+            style="width:100%; min-height:44px; font-size:16px; margin-bottom:10px; box-sizing:border-box;"
+            aria-label="Intézmény"
+        >
+            <option value="">Intézmény betöltése…</option>
+        </select>
 
 
         <input
@@ -827,6 +855,47 @@ window.addEventListener(
 
 </footer>
 
+
+
+<script>
+/* Intézménylista betöltése a Neon/Postgres-ből */
+(async function loadInstitutions() {
+  const sel = document.getElementById("institute_select");
+  if (!sel) return;
+  try {
+    const res = await fetch(API_BASE + "/api/intezmenyek");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const list = await res.json();
+    sel.innerHTML = "";
+    if (!list || list.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Nincs elérhető intézmény";
+      sel.appendChild(opt);
+      return;
+    }
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Válassz intézményt…";
+    sel.appendChild(placeholder);
+    list.forEach(function (item) {
+      const opt = document.createElement("option");
+      opt.value = item.code;
+      opt.textContent = item.shortName
+        ? (item.shortName + " – " + item.name)
+        : item.name;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn("Intézménylista hiba:", e);
+    sel.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = "demo";
+    opt.textContent = "Demó (offline)";
+    sel.appendChild(opt);
+  }
+})();
+</script>
 
 </body>
 </html>

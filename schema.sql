@@ -197,3 +197,30 @@ CREATE TABLE IF NOT EXISTS timetable_templates (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ============================================================
+-- Intézmények (multi-tenant)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS institutions (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    short_name TEXT,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_institutions_active ON institutions (active);
+
+-- Felhasználóhoz intézmény kötése
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS institute_code TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_users_institute ON users (institute_code);
+
+-- Példa intézmények (törölhetők / cserélhetők)
+INSERT INTO institutions (code, name, short_name) VALUES
+    ('demo', 'Demó Általános Iskola', 'Demó'),
+    ('teszt', 'Teszt Gimnázium', 'Teszt')
+ON CONFLICT (code) DO NOTHING;

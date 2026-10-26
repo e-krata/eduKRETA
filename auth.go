@@ -548,6 +548,13 @@ func (s *Server) handleToken(
 			username = r.FormValue("userName")
 		}
 		password := r.FormValue("password")
+		instituteCode := r.FormValue("institute_code")
+		if instituteCode == "" {
+			instituteCode = r.FormValue("instituteCode")
+		}
+		if instituteCode == "" {
+			instituteCode = cfg.InstituteCode
+		}
 
 		if username == "" || password == "" {
 			writeOAuthError(
@@ -560,7 +567,24 @@ func (s *Server) handleToken(
 			return
 		}
 
-		user, err := s.store.GetUserByUsername(username)
+		// Ha van intézménykód, ellenőrizzük, hogy létezik-e
+		if instituteCode != "" {
+			if _, err := s.store.GetInstitution(instituteCode); err != nil {
+				writeOAuthError(
+					w,
+					http.StatusBadRequest,
+					"invalid_request",
+					"Ismeretlen vagy inaktív intézmény.",
+				)
+				return
+			}
+		}
+
+		user, err := s.store.GetUserByUsernameAndInstitute(username, instituteCode)
+		if err != nil {
+			// Fallback a régi metódusra (ha még nincs institute_code oszlop / adat)
+			user, err = s.store.GetUserByUsername(username)
+		}
 
 		if err != nil {
 			writeOAuthError(
@@ -588,8 +612,11 @@ func (s *Server) handleToken(
 		if role == "" {
 			role = "Tanulo"
 		}
+		if instituteCode == "" {
+			instituteCode = cfg.InstituteCode
+		}
 		info = sessionInfo{
-			InstituteCode: cfg.InstituteCode,
+			InstituteCode: instituteCode,
 			UserID:        user.StudentUID,
 			Username:      user.Username,
 			Role:          role,

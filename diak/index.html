@@ -2,8 +2,8 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KRÁTA – Iskolai Alaprendszer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>eduKRÉTA – Diák</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="stylesheet" href="style.css" />
@@ -11,46 +11,58 @@
 </head>
 <body>
   <div id="bootMsg" class="boot-msg">
-    <img src="loading.gif" alt="Betöltés" class="boot-spinner" width="60" height="60">
     <div class="boot-text">Betöltés…</div>
   </div>
   <div id="loginScreen" style="display:none;"></div>
   <div id="appShell" style="display:none;">
+    <nav class="main-menu" id="sidebar">
+      <a class="brand" href="./">
+        <span class="brand-text">eduKRÉTA</span>
+      </a>
+      <div class="brand-sub" style="padding:0 12px 12px;color:var(--text-muted);font-size:11px;">A suli, átláthatóan.</div>
+
+      <div class="nav-section">Napló</div>
+      <button type="button" class="k-nav-item active" data-page="dashboard"><i class="fa fa-home menu-fa"></i>Áttekintés</button>
+      <button type="button" class="k-nav-item" data-page="timetable"><i class="fa fa-calendar menu-fa"></i>Órarend</button>
+      <button type="button" class="k-nav-item" data-page="grades"><i class="fa fa-graduation-cap menu-fa"></i>Jegyek</button>
+      <button type="button" class="k-nav-item" data-page="absences"><i class="fa fa-clock-o menu-fa"></i>Hiányzások</button>
+      <button type="button" class="k-nav-item" data-page="homework"><i class="fa fa-book menu-fa"></i>Házi feladatok</button>
+      <button type="button" class="k-nav-item" data-page="tests"><i class="fa fa-pencil menu-fa"></i>Dolgozatok</button>
+      <button type="button" class="k-nav-item" data-page="notes"><i class="fa fa-info-circle menu-fa"></i>Feljegyzések</button>
+
+      <div class="nav-section">Iskolai élet</div>
+      <button type="button" class="k-nav-item" data-page="eugy"><i class="fa fa-envelope menu-fa"></i>Üzenetek</button>
+      <button type="button" class="k-nav-item" data-page="documents"><i class="fa fa-folder-open menu-fa"></i>Dokumentumok</button>
+      <button type="button" class="k-nav-item" data-page="dkt"><i class="fa fa-th-large menu-fa"></i>DKT</button>
+      <button type="button" class="k-nav-item" data-page="profile"><i class="fa fa-user menu-fa"></i>Profilom</button>
+
+      <div style="flex:1"></div>
+      <button type="button" class="k-nav-item" id="logoutBtn" style="margin-top:8px;"><i class="fa fa-sign-out menu-fa"></i>Kijelentkezés</button>
+    </nav>
+
     <header class="main-header">
       <button type="button" class="menu-toggle" id="menuBtn" aria-label="Menü">☰</button>
-      <a class="brand" href="./"><img src="krata-logo.png" alt="KRÁTA" /></a>
-      <div class="school-title"><h3 id="instName">KRÁTA</h3><span id="tanev"></span></div>
+      <div class="school-title">
+        <h3 id="instName">eduKRÉTA</h3>
+        <span id="tanev"></span>
+      </div>
       <div class="usermenu">
         <span class="username" id="userName">—</span>
         <span class="usercode" id="userCode"></span>
-        <button type="button" class="k-logout" id="logoutBtn">Kijelentkezés</button>
       </div>
     </header>
-
-    <nav class="main-menu" id="sidebar">
-      <button type="button" class="k-nav-item active" data-page="dashboard"><i class="fa fa-home menu-fa"></i>Kezdőlap</button>
-      <button type="button" class="k-nav-item" data-page="timetable"><i class="fa fa-calendar-check-o menu-fa"></i>Órarend</button>
-      <button type="button" class="k-nav-item" data-page="grades"><i class="fa fa-graduation-cap menu-fa"></i>Beírt jegyek</button>
-      <button type="button" class="k-nav-item" data-page="absences"><i class="fa fa-clock-o menu-fa"></i>Mulasztások</button>
-      <button type="button" class="k-nav-item" data-page="notes"><i class="fa fa-info-circle menu-fa"></i>Információk</button>
-      <button type="button" class="k-nav-item" data-page="homework"><i class="fa fa-book menu-fa"></i>Házi feladatok</button>
-      <button type="button" class="k-nav-item" data-page="eugy"><i class="fa fa-envelope menu-fa"></i>e-Ügyintézés</button>
-      <button type="button" class="k-nav-item" data-page="documents"><i class="fa fa-folder-open menu-fa"></i>Digitális dokumentumok</button>
-      <button type="button" class="k-nav-item" data-page="dkt"><i class="fa fa-th-large menu-fa"></i>DKT</button>
-      <button type="button" class="k-nav-item" data-page="tests"><i class="fa fa-bar-chart menu-fa"></i>Dolgozatok</button>
-      <button type="button" class="k-nav-item" data-page="profile"><i class="fa fa-user menu-fa"></i>Profil</button>
-    </nav>
 
     <main class="main-content">
       <div id="pageContent"></div>
     </main>
-  <nav class="m-bottom-nav" id="bottomNav">
-    <button type="button" class="m-tab active" data-page="dashboard"><i class="fa fa-home"></i><span>Faliújság</span></button>
-    <button type="button" class="m-tab" data-page="grades"><i class="fa fa-graduation-cap"></i><span>Jegyek</span></button>
-    <button type="button" class="m-tab" data-page="timetable"><i class="fa fa-calendar-check-o"></i><span>Órarend</span></button>
-    <button type="button" class="m-tab" data-page="homework"><i class="fa fa-book"></i><span>Házi</span></button>
-    <button type="button" class="m-tab" id="moreBtn"><span class="m-ico">☰</span><span>Több</span></button>
-  </nav>
+
+    <nav class="m-bottom-nav" id="bottomNav">
+      <button type="button" class="m-tab active" data-page="dashboard"><i class="fa fa-home"></i><span>Áttekintés</span></button>
+      <button type="button" class="m-tab" data-page="grades"><i class="fa fa-graduation-cap"></i><span>Jegyek</span></button>
+      <button type="button" class="m-tab" data-page="timetable"><i class="fa fa-calendar"></i><span>Órarend</span></button>
+      <button type="button" class="m-tab" data-page="homework"><i class="fa fa-book"></i><span>Házi</span></button>
+      <button type="button" class="m-tab" id="moreBtn"><span class="m-ico">☰</span><span>Több</span></button>
+    </nav>
   </div>
   <div id="overlay" class="n-overlay"></div>
   <script src="app.js"></script>

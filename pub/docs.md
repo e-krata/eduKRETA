@@ -1,3 +1,11 @@
+## Intézmények
+
+| Metódus | Útvonal | Leírás |
+|--------|---------|--------|
+| GET | `/api/intezmenyek` | Aktív intézmények listája (auth nélkül, login oldalhoz) |
+
+Login: a `POST /connect/token` body-ban opcionálisan `institute_code` (vagy `instituteCode`) is küldhető.
+
 # KRÁTA / ujkreta – API dokumentáció
 
 **Base URL:** `https://edukreta.onrender.com`  
