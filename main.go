@@ -62,7 +62,7 @@ func main() {
 	mux.HandleFunc("/health", handleHealth)
 
 	// Intézménylista (login oldalhoz, auth nélkül)
-	mux.HandleFunc("/kapcsolodas/edukreta/publikus/intezmenyek", server.handleListInstitutions)
+	mux.HandleFunc("/api/intezmenyek", server.handleListInstitutions)
 
 	// Authentication
 	mux.HandleFunc("/Account/Login", server.handleAccountLogin)
@@ -134,6 +134,9 @@ func main() {
 	// ============================================================
 
 	server.registerAdminRoutes(mux)
+
+	// Kapcsolódás / eAdmin / LEP / Covid / Faliújság
+	server.registerKapcsolodasRoutes(mux)
 	
 	// ============================================================
 	// Static (embed)

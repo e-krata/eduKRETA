@@ -21,6 +21,7 @@ const PAGE_META = {
   absences: "Mulasztások",
   notices: "Faliújság",
   notes: "Feljegyzések",
+  lep: "LEP programok",
   profile: "Személyes adatok"
 };
 
@@ -483,6 +484,7 @@ const RENDERERS = {
   absences: renderAbsences,
   notices: renderNotices,
   notes: renderNotes,
+  lep: renderLEP,
   eugy: renderEUGY,
   documents: renderDocuments,
   dkt: renderDKT,
@@ -518,6 +520,7 @@ function navigate(page) {
     el.innerHTML = RENDERERS[page]();
     if (page === "dkt") bindDKT();
     if (page === "documents") bindDocuments();
+    if (page === "lep") bindLEP();
   } catch (e) {
     console.error(e);
     el.innerHTML = `<div class="k-panel">Hiba a nézet megjelenítésekor.</div>`;
@@ -574,6 +577,83 @@ async function checkNewGrades() {
   } catch (e) {
     console.warn("checkNewGrades", e);
   }
+}
+
+
+
+
+/* ===== LEP programok ===== */
+function instituteCode() {
+  const s = cache.student || {};
+  return s.IntezmenyAzonosito || s.IntezmenyKod || localStorage.getItem("institute_code") || "demo";
+}
+
+function renderLEP() {
+  return `<div class="k-page-title">LEP programok</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Események</div>
+      <div id="lepList"><div class="loading">Betöltés…</div></div>
+    </div>`;
+}
+
+async function bindLEP() {
+  const box = document.getElementById("lepList");
+  if (!box) return;
+  try {
+    const list = await apiGet("/kapcsolodas/LEP/mobileAPI/Eloadasok");
+    const arr = Array.isArray(list) ? list : [];
+    if (!arr.length) {
+      box.innerHTML = `<div class="empty">Nincs LEP esemény.</div>`;
+      return;
+    }
+    box.innerHTML = arr.map(ev => {
+      const full = ev.MaxLetszam > 0 && ev.JelentkezokSzama >= ev.MaxLetszam;
+      const done = (ev.Statusz || "").toLowerCase() === "befejezett";
+      return `<div class="list-row" data-uid="${esc(ev.Uid)}">
+        <div style="flex:1">
+          <div class="list-title">${esc(ev.Cim || "Esemény")}</div>
+          <div class="list-meta">${esc(ev.Kezdet || "")}${ev.Hely ? " · " + esc(ev.Hely) : ""} · ${esc(ev.Statusz || "")}
+            · ${ev.JelentkezokSzama || 0}${ev.MaxLetszam ? "/" + ev.MaxLetszam : ""} fő</div>
+        </div>
+        ${done ? `<span class="badge">Befejezett</span>` : full ? `<span class="badge">Betelt</span>` :
+          `<button type="button" class="btn lep-join" data-uid="${esc(ev.Uid)}">Jelentkezés</button>`}
+      </div>`;
+    }).join("");
+    box.querySelectorAll(".lep-join").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        try {
+          await apiPost("/kapcsolodas/LEP/EventJoin", { Uid: btn.dataset.uid });
+          bindLEP();
+        } catch (e) {
+          alert("Jelentkezés sikertelen: " + (e.message || e));
+          btn.disabled = false;
+        }
+      });
+    });
+  } catch (e) {
+    box.innerHTML = `<div class="empty">Nem sikerült betölteni a LEP listát.</div>`;
+  }
+}
+
+async function apiPost(path, body) {
+  let token = "";
+  for (const k of (typeof TOKEN_KEYS !== "undefined" ? TOKEN_KEYS : ["access_token"])) {
+    token = localStorage.getItem(k);
+    if (token) break;
+  }
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + (token || "")
+    },
+    body: JSON.stringify(body || {})
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("json")) return res.json();
+  return {};
 }
 
 
@@ -810,7 +890,7 @@ function docsToken() {
   return localStorage.getItem("access_token");
 }
 function docsApiBase() {
-  return (typeof API_BASE !== "undefined" ? API_BASE : "https://edukreta.onrender.com");
+  return (typeof API_BASE !== "undefined" ? API_BASE : "https://ujkreta.onrender.com");
 }
 async function docsFetch(path, opts = {}) {
   const token = docsToken();

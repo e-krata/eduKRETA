@@ -1260,7 +1260,9 @@ const RENDERERS = {
   timetable: renderTimetable,
   naplo: renderNaplo,
   homework: renderHomework,
-  profile: renderProfile
+  profile: renderProfile,
+  lep: renderLEP,
+  faliujsag: renderFaliujsagAdmin
 };
 
 function closeSidebar() {
@@ -1460,7 +1462,7 @@ function docsToken() {
   return localStorage.getItem("access_token");
 }
 function docsApiBase() {
-  return (typeof API_BASE !== "undefined" ? API_BASE : "https://edukreta.onrender.com");
+  return (typeof API_BASE !== "undefined" ? API_BASE : "https://ujkreta.onrender.com");
 }
 async function docsFetch(path, opts = {}) {
   const token = docsToken();
@@ -1793,6 +1795,8 @@ function navigate(page, opts = {}) {
     el.innerHTML = RENDERERS[page]();
     if (page === "dkt") bindDKT();
     if (page === "documents") bindDocuments();
+    if (page === "lep") bindLEP();
+    if (page === "faliujsag") bindFaliujsagAdmin();
   if (page === "timetable" && typeof bindTimetable === "function") bindTimetable();
   if (page === "naplo" && typeof bindNaplo === "function") bindNaplo(opts || {});
 
@@ -1944,4 +1948,141 @@ function renderHomeworkForm() {
     <h3 style="margin-top:20px;font-size:15px">Meglévő házik</h3>
     ${existing}
   </div>`;
+}
+
+
+
+/* ===== Kapcsolódás: LEP + Faliújság ===== */
+function kIntezmenyId() {
+  try {
+    const s = (typeof cache !== "undefined" && cache.student) ? cache.student : {};
+    return s.IntezmenyAzonosito || s.IntezmenyKod || localStorage.getItem("institute_code") || "demo";
+  } catch { return "demo"; }
+}
+
+function renderLEP() {
+  return `<div class="k-page-title">LEP programok</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Új esemény</div>
+      <div style="display:grid;gap:10px;max-width:480px">
+        <input id="lepCim" placeholder="Cím" />
+        <input id="lepKezdet" type="datetime-local" />
+        <input id="lepHely" placeholder="Helyszín" />
+        <input id="lepMax" type="number" placeholder="Max létszám" />
+        <button type="button" class="btn" id="lepAddBtn">Létrehozás</button>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Lista</div><div id="lepList"><div class="loading">Betöltés…</div></div></div>`;
+}
+
+function renderFaliujsagAdmin() {
+  return `<div class="k-page-title">Faliújság kezelés</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Új bejegyzés</div>
+      <div style="display:grid;gap:10px;max-width:520px">
+        <input id="fuCim" placeholder="Cím" />
+        <textarea id="fuTartalom" rows="3" placeholder="Tartalom"></textarea>
+        <button type="button" class="btn" id="fuAddBtn">Közzététel</button>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Bejegyzések</div><div id="fuList"><div class="loading">Betöltés…</div></div></div>`;
+}
+
+async function kApiGet(path) {
+  const token = localStorage.getItem("access_token") || localStorage.getItem("teacher_access_token") || localStorage.getItem("of_access_token") || "";
+  const base = (typeof API_BASE !== "undefined" ? API_BASE : "");
+  const res = await fetch(base + path, { headers: { Authorization: "Bearer " + token } });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+async function kApiPost(path, body) {
+  const token = localStorage.getItem("access_token") || localStorage.getItem("teacher_access_token") || localStorage.getItem("of_access_token") || "";
+  const base = (typeof API_BASE !== "undefined" ? API_BASE : "");
+  const res = await fetch(base + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify(body || {})
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json().catch(() => ({}));
+}
+
+async function bindLEP() {
+  const box = document.getElementById("lepList");
+  const addBtn = document.getElementById("lepAddBtn");
+  if (addBtn) {
+    addBtn.onclick = async () => {
+      try {
+        await kApiPost("/kapcsolodas/LEP/EventAdd", {
+          Cim: document.getElementById("lepCim").value,
+          Kezdet: document.getElementById("lepKezdet").value,
+          Hely: document.getElementById("lepHely").value,
+          MaxLetszam: Number(document.getElementById("lepMax").value) || 0,
+          IntezmenyKod: kIntezmenyId()
+        });
+        bindLEP();
+      } catch (e) { alert("Hiba: " + e.message); }
+    };
+  }
+  if (!box) return;
+  try {
+    const arr = await kApiGet("/kapcsolodas/LEP/mobileAPI/Eloadasok");
+    const list = Array.isArray(arr) ? arr : [];
+    box.innerHTML = list.length ? list.map(ev => `
+      <div class="list-row">
+        <div style="flex:1">
+          <div class="list-title">${(ev.Cim||"").replace(/</g,"&lt;")}</div>
+          <div class="list-meta">${ev.Statusz||""} · ${ev.JelentkezokSzama||0} jelentkező</div>
+        </div>
+        <button type="button" class="btn-ghost lep-fin" data-uid="${ev.Uid}">Kész</button>
+        <button type="button" class="btn-ghost lep-del" data-uid="${ev.Uid}">Törlés</button>
+      </div>`).join("") : `<div class="empty">Nincs esemény.</div>`;
+    box.querySelectorAll(".lep-del").forEach(b => b.onclick = async () => {
+      await kApiPost("/kapcsolodas/LEP/EventDelete", { Uid: b.dataset.uid });
+      bindLEP();
+    });
+    box.querySelectorAll(".lep-fin").forEach(b => b.onclick = async () => {
+      await kApiPost("/kapcsolodas/LEP/EventFinished", { Uid: b.dataset.uid });
+      bindLEP();
+    });
+  } catch (e) {
+    box.innerHTML = `<div class="empty">Betöltési hiba.</div>`;
+  }
+}
+
+async function bindFaliujsagAdmin() {
+  const id = kIntezmenyId();
+  const box = document.getElementById("fuList");
+  const addBtn = document.getElementById("fuAddBtn");
+  if (addBtn) {
+    addBtn.onclick = async () => {
+      try {
+        await kApiPost(`/kapcsolodas/${encodeURIComponent(id)}/Faliujsag/Add`, {
+          Cim: document.getElementById("fuCim").value,
+          Tartalom: document.getElementById("fuTartalom").value,
+          RogzitoNeve: document.getElementById("userName")?.textContent || "Tanár"
+        });
+        bindFaliujsagAdmin();
+      } catch (e) { alert("Hiba: " + e.message); }
+    };
+  }
+  if (!box) return;
+  try {
+    const arr = await kApiGet("/ellenorzo/v3/sajat/FaliujsagElemek");
+    const list = Array.isArray(arr) ? arr : [];
+    box.innerHTML = list.length ? list.map(n => `
+      <div class="list-row">
+        <div style="flex:1">
+          <div class="list-title">${(n.Cim||"").replace(/</g,"&lt;")}</div>
+          <div class="list-meta">${(n.TartalomText||n.Tartalom||"").replace(/</g,"&lt;").slice(0,120)}</div>
+        </div>
+        <button type="button" class="btn-ghost fu-del" data-uid="${n.Uid}">Törlés</button>
+      </div>`).join("") : `<div class="empty">Üres a faliújság.</div>`;
+    box.querySelectorAll(".fu-del").forEach(b => b.onclick = async () => {
+      await kApiPost(`/kapcsolodas/${encodeURIComponent(id)}/Faliujsag/Torles`, { Uid: b.dataset.uid });
+      bindFaliujsagAdmin();
+    });
+  } catch (e) {
+    box.innerHTML = `<div class="empty">Betöltési hiba.</div>`;
+  }
 }

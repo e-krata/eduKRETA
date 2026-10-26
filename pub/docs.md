@@ -231,3 +231,32 @@ Base: `/dktapi`
 | `eugyintezes/` | kommunikáció API |
 | `dkt/` | DKT + local UI |
 
+
+
+## Egyéb
+
+# Lázár Ervin Program
+
+| Útvonal | Leírás |
+|---------|--------|
+| `/kapcsolodas/LEP/mobileAPI/Eloadasok` | Összes előadás lekérése |
+| `/kapcsolodas/LEP/mobileAPI/Eloadasok/GondviseloEngedelyezes` | Gondviselő beleegyezés |
+| `/kapcsolodas/LEP/EventAdd` | Előadás hozzáadás |
+| `/kapcsolodas/LEP/EventDelete` | Előadás törlés |
+| `/kapcsolodas/LEP/EventFinished` | Előadás befejeződött |
+| `/kapcsolodas/LEP/EventJoin` | Előadás megtekintése |
+
+# Covid
+
+| Útvonal | Leírás |
+|---------|--------|
+| `/kapcsolodas/edukreta/Covid/{IntezmenyId}/IntezmenyLezaras/Start` | Intézmény Lezárásának kezdete |
+| `/kapcsolodas/edukreta/Covid/{IntezmenyId}/IntezmenyLezaras/Vege` | Intézmény Lezárásának vége |
+| `/kapcsolodas/edukreta/Covid/{IntezmenyId}/Bejelentes` | Covid bejelentés |
+
+# Alkalmazottak
+| Útvonal | Leírás |
+|---------|--------|
+| `/kapcsolodas/eAdmin/{IntezmenyId}/alkalmazottak/Igazgatosag` | Intézmény igazgatóság lekérés |
+| `/kapcsolodas/eAdmin/{IntezmenyId}/alkalmazottak/Osztalyfonok` | Intézmény összes osztályfőnök lekérés |
+| `/kapcsolodas/eAdmin/{IntezmenyId}/alkalmazottak/Adminisztrator` | Intézmény Adminisztrátor lekérés |

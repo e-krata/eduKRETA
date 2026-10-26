@@ -224,3 +224,17 @@ INSERT INTO institutions (code, name, short_name) VALUES
     ('demo', 'Demó Általános Iskola', 'Demó'),
     ('teszt', 'Teszt Gimnázium', 'Teszt')
 ON CONFLICT (code) DO NOTHING;
+
+-- LEP események
+CREATE TABLE IF NOT EXISTS lep_events (
+    uid TEXT PRIMARY KEY,
+    data JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Covid intézménylezárások
+CREATE TABLE IF NOT EXISTS covid_closures (
+    intezmeny_id TEXT PRIMARY KEY,
+    data JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
