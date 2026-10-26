@@ -3,8 +3,8 @@
    Login a főoldalon. Token nélkül → fő login.
    ============================================================ */
 
-const API_BASE = "https://ujkreta.onrender.com";
-const LOGIN_URL = "https://puspus-dev.github.io/ujkreta/";
+const API_BASE = "https://edukreta.onrender.com";
+const LOGIN_URL = "https://e-krata.github.io/eduKRETA/";
 
 const TOKEN_KEYS = ["access_token", "ujkreta_access_token"];
 const REFRESH_KEYS = ["refresh_token", "ujkreta_refresh_token"];
