@@ -1,6 +1,6 @@
 /* KRÁTA Osztályfőnök – diák+user, jegy, mulasztás, házi, órarend. Nincs tanár/konfig/iskola. */
-const API_BASE = "https://ujkreta.onrender.com";
-const LOGIN_URL = "https://puspus-dev.github.io/ujkreta/";
+const API_BASE = "https://edukreta.onrender.com";
+const LOGIN_URL = "https://e-krata.github.io/eduKRETA/";
 const TOKEN_KEYS = ["access_token", "ujkreta_access_token", "of_access_token"];
 const PAGE_META = {
   eugy: "e-Ügyintézés",
