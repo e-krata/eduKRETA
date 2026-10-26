@@ -9,6 +9,6 @@ Fejlesztett KRÉTA e-napló alternatíva.
 - Név: **eduKRÉTA**
 
 ## API
-Lásd `pub/docs.md`.k`.
+Lásd `pub/docs.md`.
 
 Discord: https://discord.gg/gzqmccHXWb
