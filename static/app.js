@@ -3,7 +3,7 @@
    Iskolák, diák profilok, userek, konfig
    ============================================================ */
 
-const API_BASE = "https://ujkreta.onrender.com";
+const API_BASE = "https://edukreta.onrender.com";
 const SCHOOLS_KEY = "ujkreta_admin_schools";
 
 const PAGE_META = {

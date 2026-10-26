@@ -1460,7 +1460,7 @@ function docsToken() {
   return localStorage.getItem("access_token");
 }
 function docsApiBase() {
-  return (typeof API_BASE !== "undefined" ? API_BASE : "https://ujkreta.onrender.com");
+  return (typeof API_BASE !== "undefined" ? API_BASE : "https://edukreta.onrender.com");
 }
 async function docsFetch(path, opts = {}) {
   const token = docsToken();

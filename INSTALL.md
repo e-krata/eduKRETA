@@ -145,12 +145,12 @@ Deploy után **ne** nyomj feleslegesen Reset-et, ha már van éles adat.
 ## Teszt
 
 ```bash
-curl -s -X POST https://ujkreta.onrender.com/connect/token \
+curl -s -X POST https://edukreta.onrender.com/connect/token \
   -d 'grant_type=password&username=student&password=student'
 
 TOKEN=...
 curl -s -H "Authorization: Bearer $TOKEN" \
-  https://ujkreta.onrender.com/ellenorzo/v3/sajat/TanuloAdatlap
+  https://edukreta.onrender.com/ellenorzo/v3/sajat/TanuloAdatlap
 ```
 
 Admin UI: `/admin/` (static) vagy a régi admin + `/static/admin/index.html`

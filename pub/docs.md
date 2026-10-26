@@ -1,6 +1,6 @@
 # KRÁTA / ujkreta – API dokumentáció
 
-**Base URL:** `https://ujkreta.onrender.com`  
+**Base URL:** `https://edukreta.onrender.com`  
 **Auth:** `Authorization: Bearer <access_token>`  
 Token: `POST /connect/token` (OAuth2 password / refresh)
 
