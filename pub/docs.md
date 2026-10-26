@@ -2,7 +2,7 @@
 
 | Metódus | Útvonal | Leírás |
 |--------|---------|--------|
-| GET | `/api/intezmenyek` | Aktív intézmények listája (auth nélkül, login oldalhoz) |
+| GET | `/kapcsolodas/edukreta/publikus/intezmenyek` | Aktív intézmények listája (auth nélkül, login oldalhoz) |
 
 Login: a `POST /connect/token` body-ban opcionálisan `institute_code` (vagy `instituteCode`) is küldhető.
 

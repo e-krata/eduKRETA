@@ -863,7 +863,7 @@ window.addEventListener(
   const sel = document.getElementById("institute_select");
   if (!sel) return;
   try {
-    const res = await fetch(API_BASE + "/api/intezmenyek");
+    const res = await fetch(API_BASE + "/kapcsolodas/edukreta/publikus/intezmenyek");
     if (!res.ok) throw new Error("HTTP " + res.status);
     const list = await res.json();
     sel.innerHTML = "";

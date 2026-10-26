@@ -6,7 +6,7 @@ import (
 )
 
 // handleListInstitutions – publikus endpoint a login oldal intézményválasztójához.
-// GET /api/intezmenyek
+// GET /connect/edukreta/publikus/intezmenyek
 func (s *Server) handleListInstitutions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)

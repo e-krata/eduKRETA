@@ -62,7 +62,7 @@ func main() {
 	mux.HandleFunc("/health", handleHealth)
 
 	// Intézménylista (login oldalhoz, auth nélkül)
-	mux.HandleFunc("/api/intezmenyek", server.handleListInstitutions)
+	mux.HandleFunc("/kapcsolodas/edukreta/publikus/intezmenyek", server.handleListInstitutions)
 
 	// Authentication
 	mux.HandleFunc("/Account/Login", server.handleAccountLogin)
