@@ -1,4 +1,4 @@
-# KRÁTA/ÚjKréta
+# eduKRÉTA
 
 Fejlesztett KRÉTA e-napló alternatíva
 
