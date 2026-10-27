@@ -301,6 +301,10 @@ func (s *Server) registerMessageRoutes(mux *http.ServeMux) {
 	mux.HandleFunc(base+"/postaladaelemek/", s.requireAuthSession(s.handlePostaladaByID))
 	mux.HandleFunc(base+"/uzenetek/olvasott", s.requireAuthSession(s.handleUzenetOlvasott))
 	mux.HandleFunc(base+"/uzenetek", s.requireAuthSession(s.handleUzenetKuldes))
+	mux.HandleFunc(base+"/postaladaelemek/kuka", s.requireAuthSession(s.handleUzenetKuka))
+    mux.HandleFunc(base+"/postaladaelemek/torles", s.requireAuthSession(s.handleUzenetTorles))
+    mux.HandleFunc(base+"/cimezhetotipusok", s.requireAuthSession(s.handleCimezhetoTipusok))
+    mux.HandleFunc("/integration-kretamobile-api/v1/adatszotarak/cimzetttipusok", s.requireAuthSession(s.handleCimzettTipusok))
 }
 
 func (s *Server) handlePostaladaSajat(w http.ResponseWriter, r *http.Request) {
@@ -410,6 +414,139 @@ func (s *Server) handleUzenetKuldes(w http.ResponseWriter, r *http.Request) {
 	}
 	elem := globalMessages.send(req, owner)
 	writeJSON(w, http.StatusCreated, elem)
+}
+// ---------- store ----------
+
+func (ms *messageStore) trash(ids []int, ownerUID string) int {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	n := 0
+	for i := range ms.items {
+		if ms.items[i].OwnerUID != ownerUID {
+			continue
+		}
+		for _, id := range ids {
+			if ms.items[i].Azonosito == id {
+				ms.items[i].IsToroltElem = true
+				n++
+				break
+			}
+		}
+	}
+	return n
+}
+
+func (ms *messageStore) deletePermanent(ids []int, ownerUID string) int {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	out := make([]postaladaElem, 0, len(ms.items))
+	n := 0
+	for _, it := range ms.items {
+		drop := false
+		if it.OwnerUID == ownerUID {
+			for _, id := range ids {
+				if it.Azonosito == id {
+					drop = true
+					n++
+					break
+				}
+			}
+		}
+		if !drop {
+			out = append(out, it)
+		}
+	}
+	ms.items = out
+	return n
+}
+
+// ---------- handlerek ----------
+
+// POST /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/kuka
+// body: { "uzenetAzonositoLista": [1001] }
+func (s *Server) handleUzenetKuka(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
+		methodNotAllowed(w, "POST, PUT")
+		return
+	}
+	sess, ok := sessionFromRequest(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+	var body struct {
+		UzenetAzonositoLista []int `json:"uzenetAzonositoLista"`
+		AzonositoLista       []int `json:"azonositoLista"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
+		return
+	}
+	ids := body.UzenetAzonositoLista
+	if len(ids) == 0 {
+		ids = body.AzonositoLista
+	}
+	n := globalMessages.trash(ids, sess.UserID)
+	writeJSON(w, http.StatusOK, map[string]any{"success": true, "count": n})
+}
+
+// POST /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/torles
+// body: { "uzenetAzonositoLista": [1001] }
+func (s *Server) handleUzenetTorles(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodDelete {
+		methodNotAllowed(w, "POST, DELETE")
+		return
+	}
+	sess, ok := sessionFromRequest(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+	var body struct {
+		UzenetAzonositoLista []int `json:"uzenetAzonositoLista"`
+		AzonositoLista       []int `json:"azonositoLista"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
+		return
+	}
+	ids := body.UzenetAzonositoLista
+	if len(ids) == 0 {
+		ids = body.AzonositoLista
+	}
+	n := globalMessages.deletePermanent(ids, sess.UserID)
+	writeJSON(w, http.StatusOK, map[string]any{"success": true, "count": n})
+}
+
+// GET /integration-kretamobile-api/v1/adatszotarak/cimzetttipusok
+func (s *Server) handleCimzettTipusok(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		methodNotAllowed(w, "GET")
+		return
+	}
+	writeJSON(w, http.StatusOK, []cimzettTipus{
+		{Azonosito: 1, Kod: "TANULO", RovidNev: "Tanuló", Nev: "Tanuló", Leiras: "Egy diák"},
+		{Azonosito: 2, Kod: "OSZTALY", RovidNev: "Osztály", Nev: "Osztály", Leiras: "Osztálycsoport"},
+		{Azonosito: 3, Kod: "TANAR", RovidNev: "Tanár", Nev: "Tanár", Leiras: "Pedagógus"},
+		{Azonosito: 4, Kod: "SZULO", RovidNev: "Szülő", Nev: "Gondviselő", Leiras: "Szülő / gondviselő"},
+		{Azonosito: 5, Kod: "IGAZGATOSAG", RovidNev: "Igazgatóság", Nev: "Igazgatóság", Leiras: "Igazgatóság"},
+		{Azonosito: 6, Kod: "ADMIN", RovidNev: "Admin", Nev: "Adminisztrátor", Leiras: "Intézményi adminisztrátor"},
+	})
+}
+
+// GET /integration-kretamobile-api/v1/kommunikacio/cimezhetotipusok
+func (s *Server) handleCimezhetoTipusok(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		methodNotAllowed(w, "GET")
+		return
+	}
+	writeJSON(w, http.StatusOK, []map[string]any{
+		{"azonosito": 1, "kod": "TANULO", "nev": "Tanuló", "cimezheto": true},
+		{"azonosito": 2, "kod": "OSZTALY", "nev": "Osztály", "cimezheto": true},
+		{"azonosito": 3, "kod": "TANAR", "nev": "Tanár", "cimezheto": true},
+		{"azonosito": 4, "kod": "SZULO", "nev": "Gondviselő", "cimezheto": true},
+		{"azonosito": 5, "kod": "IGAZGATOSAG", "nev": "Igazgatóság", "cimezheto": true},
+	})
 }
 
 // silence unused if fmt needed later
