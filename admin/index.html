@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>eduKRÉTA – Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px; box-shadow: var(--shadow);
+    }
+    .login-card h1 { font-size: 22px; margin-bottom: 6px; }
+    .login-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+    .login-card label { display: block; font-size: 12px; color: var(--text-muted); margin: 12px 0 6px; }
+    .login-card input { width: 100%; }
+    .login-card .btn { width: 100%; margin-top: 18px; }
+    .err { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; }
+    .table-wrap { overflow-x: auto; }
+    table.admin-table { width: 100%; font-size: 13px; }
+    table.admin-table th { text-align: left; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
+    .toolbar input, .toolbar select { max-width: 220px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .stat b { display: block; font-size: 24px; color: var(--accent); }
+    .stat span { font-size: 12px; color: var(--text-muted); }
+    #appShell { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-wrap">
+    <div class="login-card">
+      <h1>eduKRÉTA Admin</h1>
+      <p>HTTP Basic Auth – ADMIN_USERNAME / ADMIN_PASSWORD</p>
+      <label>Felhasználónév</label>
+      <input id="admUser" autocomplete="username" />
+      <label>Jelszó</label>
+      <input id="admPass" type="password" autocomplete="current-password" />
+      <div class="err" id="loginErr">Hibás adatok vagy nincs admin beállítva.</div>
+      <button type="button" class="btn" id="loginBtn">Belépés</button>
+    </div>
+  </div>
+
+  <div id="appShell">
+    <nav class="main-menu" id="sidebar">
+      <a class="brand" href="./"><span class="brand-text">eduKRÉTA</span></a>
+      <div class="brand-sub" style="padding:0 12px 12px;color:var(--text-muted);font-size:11px;">Adminisztráció</div>
+      <div class="nav-section">Áttekintés</div>
+      <button type="button" class="k-nav-item active" data-page="dashboard">Áttekintés</button>
+      <div class="nav-section">Adatok</div>
+      <button type="button" class="k-nav-item" data-page="users">Felhasználók</button>
+      <button type="button" class="k-nav-item" data-page="students">Diákok</button>
+      <button type="button" class="k-nav-item" data-page="institutions">Intézmények</button>
+      <button type="button" class="k-nav-item" data-page="classgroups">Osztályok</button>
+      <button type="button" class="k-nav-item" data-page="config">Konfig</button>
+      <div class="nav-section">Rendszer</div>
+      <button type="button" class="k-nav-item" data-page="health">Health</button>
+      <button type="button" class="k-nav-item" data-page="danger">Veszélyes</button>
+      <div style="flex:1"></div>
+      <button type="button" class="k-nav-item" id="logoutBtn">Kijelentkezés</button>
+    </nav>
+    <header class="main-header">
+      <button type="button" class="menu-toggle" id="menuBtn">☰</button>
+      <div class="school-title"><h3>Admin</h3><span id="pageTitle">Áttekintés</span></div>
+    </header>
+    <main class="main-content"><div id="pageContent"></div></main>
+  </div>
+  <div id="overlay" class="n-overlay"></div>
+  <script src="app.js"></script>
+</body>
+</html>
