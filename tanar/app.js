@@ -1336,9 +1336,9 @@ function dktEnsureSeed(wsId, subj) {
 }
 
 function renderDKT() {
-  window.location.href = "https://puspus-dev.github.io/ujkreta/dkt/";
+  window.location.href = "https://e-krata.github.io/eduKRETA/dkt/";
   return `<div class="n-panel"><div class="n-panel-body">Átirányítás a DKT oldalra…
-    <a href="https://puspus-dev.github.io/ujkreta/dkt/">Megnyitás →</a></div></div>`;
+    <a href="https://e-krata.github.io/eduKRETA/dkt/">Megnyitás →</a></div></div>`;
 }
 function renderDKT_legacy() {
   const list = dktWorkspaces();
@@ -1462,7 +1462,7 @@ function docsToken() {
   return localStorage.getItem("access_token");
 }
 function docsApiBase() {
-  return (typeof API_BASE !== "undefined" ? API_BASE : "https://ujkreta.onrender.com");
+  return (typeof API_BASE !== "undefined" ? API_BASE : "https://edukreta.onrender.com");
 }
 async function docsFetch(path, opts = {}) {
   const token = docsToken();
@@ -1756,18 +1756,18 @@ function bindDocuments() {
 
 
 function renderEUGY() {
-  window.location.href = "https://puspus-dev.github.io/ujkreta/eugyintezes/";
+  window.location.href = "https://e-krata.github.io/eduKRETA/eugyintezes/";
   return `<div class="n-panel"><div class="n-panel-body">Átirányítás az e-Ügyintézéshez…
-    <a class="k-logout" href="https://puspus-dev.github.io/ujkreta/eugyintezes/">Megnyitás →</a></div></div>`;
+    <a class="k-logout" href="https://e-krata.github.io/eduKRETA/eugyintezes/">Megnyitás →</a></div></div>`;
 }
 
 function navigate(page, opts = {}) {
   if (page === "eugy") {
-    window.location.href = "https://puspus-dev.github.io/ujkreta/eugyintezes/";
+    window.location.href = "https://e-krata.github.io/eduKRETA/eugyintezes/";
     return;
   }
   if (page === "dkt") {
-    window.location.href = "https://puspus-dev.github.io/ujkreta/dkt/";
+    window.location.href = "https://e-krata.github.io/eduKRETA/dkt/";
     return;
   }
   if (page === "documents" && !cache.dkt) {
