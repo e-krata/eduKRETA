@@ -161,53 +161,94 @@ function empty(t) {
 /* ---------- pages ---------- */
 
 function renderDashboard() {
-  const grades = (Array.isArray(cache.grades) ? cache.grades : []).slice(0, 8);
-  const abs = (Array.isArray(cache.absences) ? cache.absences : []).slice(0, 5);
-  const notes = (Array.isArray(cache.notes) ? cache.notes : []).slice(0, 5);
-  const tests = (Array.isArray(cache.tests) ? cache.tests : []).slice(0, 5);
-  const notices = Array.isArray(cache.notices) ? cache.notices : [];
+  const s = cache.student || {};
+  const name = s.Nev || localStorage.getItem("local_usr") || "";
+  const lessons = Array.isArray(cache.timetable) ? cache.timetable : (Array.isArray(cache.lessons) ? cache.lessons : []);
+  const grades = Array.isArray(cache.grades) ? cache.grades : [];
+  const hw = Array.isArray(cache.homework) ? cache.homework : [];
+  const tests = Array.isArray(cache.tests) ? cache.tests : [];
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const todayLessons = lessons.filter(l => String(l.Datum || l.datum || "").slice(0, 10) === todayStr).slice(0, 8);
+  const latestGrades = grades.slice(0, 5);
+  const avgList = Array.isArray(cache.averages) ? cache.averages : [];
+  let avg = "—";
+  if (grades.length) {
+    const nums = grades.map(g => Number(g.SzamErtek)).filter(n => n > 0);
+    if (nums.length) avg = (nums.reduce((a,b)=>a+b,0) / nums.length).toFixed(2).replace(".", ",");
+  }
+  const lessonRows = todayLessons.length ? todayLessons.map(l => {
+    const start = (l.KezdetIdopont || "").slice(11, 16) || "";
+    const end = (l.VegIdopont || "").slice(11, 16) || "";
+    const subj = (l.Tantargy && (l.Tantargy.Nev || l.Tantargy.nev)) || l.Nev || "Óra";
+    const teacher = l.TanarNeve || "";
+    const room = l.TeremNeve || (l.Oraszam ? (l.Oraszam + ". óra") : "");
+    return `<details class="lesson-item"><summary class="lesson-summary">
+      <div class="lesson-time"><strong>${esc(start)}</strong><span>${esc(end)}</span></div>
+      <div class="lesson-main"><strong>${esc(subj)}</strong><span>${esc(teacher)}</span></div>
+      <span class="lesson-room">${esc(room)}</span>
+    </summary></details>`;
+  }).join("") : `<div class="empty-state"><h3>Mára nincs tanóra.</h3><p>Nézd meg a heti órarendet.</p></div>`;
 
-  const gradeRows = grades.length ? grades.map(g => {
-    const n = g.SzamErtek ?? g.szamErtek ?? "";
-    const sub = (g.Tantargy && (g.Tantargy.Nev || g.Tantargy.nev)) || g.Tema || "—";
-    const d = fmtDate(g.KeszitesDatuma || g.RogzitesDatuma || "");
-    return `<div class="k-grade-row"><div class="k-grade-num">${esc(n)}</div>
-      <div><div>${esc(sub)}</div><div class="k-grade-meta">${esc(d)}</div></div></div>`;
-  }).join("") : `<div class="k-card-empty">Nincsenek megjeleníthető értékelések</div>`;
-
-  const absBody = abs.length ? abs.map(a =>
-    `<div class="k-grade-row"><div>${esc(fmtDate(a.Datum || a.Kezdete || ""))}</div>
-     <div class="k-grade-meta">${esc(a.Tipus?.Nev || a.IgazolasAllapota?.Nev || "Mulasztás")}</div></div>`
-  ).join("") : `<div class="k-card-empty">Nincsenek megjeleníthető mulasztások</div>`;
-
-  const noteBody = notes.length ? notes.map(n =>
-    `<div class="k-grade-row"><div>${esc(n.Cim || n.Tipus?.Nev || "Feljegyzés")}</div>
-     <div class="k-grade-meta">${esc(fmtDate(n.Datum || n.KeszitesDatuma || ""))}</div></div>`
-  ).join("") : `<div class="k-card-empty">Nincs feljegyzés</div>`;
-
-  const testBody = tests.length ? tests.map(t =>
-    `<div class="k-grade-row"><div>${esc(t.Nev || t.Tema || "Dolgozat")}</div>
-     <div class="k-grade-meta">${esc(fmtDate(t.Datum || t.BejelentesDatuma || ""))}</div></div>`
-  ).join("") : `<div class="k-card-empty">Nincsenek megjeleníthető bejelentett dolgozatok</div>`;
-
-  const tl = notices.length ? notices.map(n =>
-    `<div class="k-tl-item"><div class="t">${esc(n.Cim || n.Title || "Bejegyzés")}</div>
-     <div class="d">${esc(fmtDate(n.Datum || n.KeszitesDatuma || ""))}</div>
-     <div>${esc(n.Szoveg || n.Leiras || "")}</div></div>`
-  ).join("") : `<div class="k-tl-body">A faliújság jelenleg üres</div>`;
-
-  return `
-    <div class="k-dash">
-      <div class="k-card"><div class="k-card-h">Legutóbbi értékelések</div><div class="k-card-b">${gradeRows}</div></div>
-      <div class="k-card"><div class="k-card-h">Legutóbbi mulasztások</div><div class="k-card-b">${absBody}</div></div>
-      <div class="k-card"><div class="k-card-h">Legutóbbi feljegyzések</div><div class="k-card-b">${noteBody}</div></div>
-      <div class="k-card"><div class="k-card-h">Következő bejelentett dolgozatok</div><div class="k-card-b">${testBody}</div></div>
-    </div>
-    <div class="k-timeline">
-      <div class="k-tl-bar">Nincs bejegyzés</div>
-      ${notices.length ? `<div class="k-tl-body">${tl}</div>` : `<div class="k-tl-body">A faliújság jelenleg üres</div>`}
+  const gradeRows = latestGrades.length ? latestGrades.map(g => {
+    const subj = (g.Tantargy && (g.Tantargy.Nev || g.Tantargy.nev)) || "Tantárgy";
+    const val = g.SzamErtek ?? g.SzovegesErtek ?? "?";
+    const topic = g.Tema || g.Tipus?.Nev || "";
+    const date = (g.KeszitesDatuma || g.RogzitesDatuma || "").slice(0, 10);
+    return `<div class="activity-item grade-activity">
+      <span class="grade-badge">${esc(val)}</span>
+      <div class="activity-main"><strong>${esc(subj)}</strong><span class="small muted">${esc(topic)} · ${esc(date)}</span></div>
     </div>`;
+  }).join("") : `<div class="empty-state"><h3>Még nincs új értékelés.</h3></div>`;
+
+  const hwRows = hw.slice(0, 4).map(h => {
+    const title = h.TantargyNeve || h.Tantargy?.Nev || "Házi";
+    const desc = h.Szoveg || h.Leiras || h.Tema || "";
+    const dl = (h.Hatarido || h.Datum || "").slice(0, 10);
+    return `<article class="activity-item"><span class="activity-icon">≡</span>
+      <div class="activity-main"><strong>${esc(title)}</strong><p class="line-clamp">${esc(desc)}</p>
+      <span class="small muted">Határidő: ${esc(dl)}</span></div></article>`;
+  }).join("") || `<div class="empty-state"><h3>Nincs közelgő házi feladat.</h3></div>`;
+
+  const testRows = tests.slice(0, 4).map(t => {
+    const subj = t.TantargyNeve || t.Tantargy?.Nev || "Dolgozat";
+    const topic = t.Temaja || t.Tema || "";
+    const date = (t.Datum || "").slice(0, 10);
+    return `<article class="activity-item"><div class="activity-main"><strong>${esc(subj)}</strong><p>${esc(topic)}</p><span class="badge">${esc(date)}</span></div></article>`;
+  }).join("") || `<p class="muted small">Nincs bejelentett számonkérés.</p>`;
+
+  return `<header class="page-header"><div>
+    <p class="eyebrow">${esc(todayStr)} · ${esc(s.TanevUid || "")}</p>
+    <h1>Szia${name ? ", " + esc(name) : ""}!</h1>
+    <p class="page-description">Egy helyen minden, ami a tanítási napodhoz kell.</p>
+  </div>
+  <button type="button" class="button button-secondary" data-page="timetable" onclick="typeof navigate==='function'&&navigate('timetable')">Heti órarend ↗</button>
+  </header>
+  <div class="content-grid dashboard-grid">
+    <div class="stack">
+      <section class="card"><div class="card-header"><h2 class="card-title">Mai óráid <span class="count">${todayLessons.length}</span></h2>
+        <a class="small" href="#" onclick="navigate('timetable');return false">Teljes órarend →</a></div>
+        <div class="card-body lesson-list">${lessonRows}</div></section>
+      <section class="card"><div class="card-header"><h2 class="card-title">Házi feladatok</h2>
+        <a class="small" href="#" onclick="navigate('homework');return false">Összes →</a></div>
+        <div class="card-body activity-list">${hwRows}</div></section>
+    </div>
+    <aside class="stack">
+      <section class="card average-card"><div class="card-body">
+        <span class="stat-label">Tanévi súlyozott átlagod</span>
+        <strong class="hero-average">${esc(avg)}</strong>
+        <div class="row"><span class="small muted">${grades.length} értékelés</span>
+          <a href="#" onclick="navigate('grades');return false">↗</a></div>
+      </div></section>
+      <section class="card"><div class="card-header"><h2 class="card-title">Legutóbbi jegyek</h2>
+        <a class="small" href="#" onclick="navigate('grades');return false">Mind →</a></div>
+        <div class="card-body activity-list">${gradeRows}</div></section>
+      <section class="card"><div class="card-header"><h2 class="card-title">Közelgő dolgozatok</h2></div>
+        <div class="card-body activity-list">${testRows}</div></section>
+    </aside>
+  </div>`;
 }
+
 
 function renderGrades() {
   const grades = Array.isArray(cache.grades) ? cache.grades : [];
@@ -1188,3 +1229,13 @@ function renderEUGY() {
   return `<div class="k-panel"><p>Átirányítás az e-Ügyintézéshez…</p>
     <p><a class="k-logout" href="https://puspus-dev.github.io/ujkreta/eugyintezes/">Megnyitás →</a></p></div>`;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sb = document.getElementById("sidebar");
+  const open = () => { sb?.classList.add("open"); const o=document.getElementById("overlay"); if(o) o.style.display="block"; };
+  const close = () => { sb?.classList.remove("open"); const o=document.getElementById("overlay"); if(o) o.style.display="none"; };
+  document.getElementById("menuBtn")?.addEventListener("click", open);
+  document.getElementById("moreBtn")?.addEventListener("click", open);
+  document.getElementById("overlay")?.addEventListener("click", close);
+  document.querySelector("[data-close-menu]")?.addEventListener("click", close);
+});

@@ -1,71 +1,79 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="hu" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>eduKRÉTA – Diák</title>
-  <link rel="icon" href="favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#10141f" />
+  <title>eduKRÉTA · Diák</title>
+  <script src="kreten/appearance.js"></script>
+  <link rel="stylesheet" href="kreten/app.css" />
+  <link rel="stylesheet" href="kreten/pages.css" />
+  <link rel="stylesheet" href="kreten/glass.css" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="font-awesome-min.css" />
 </head>
-<body>
-  <div id="bootMsg" class="boot-msg">
-    <div class="boot-text">Betöltés…</div>
-  </div>
-  <div id="loginScreen" style="display:none;"></div>
-  <div id="appShell" style="display:none;">
-    <nav class="main-menu" id="sidebar">
+<body class="app-page">
+  <div id="bootMsg" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg,#10141f);z-index:9999;color:var(--muted,#a0abc0)">Betöltés…</div>
+  <div id="loginScreen" style="display:none"></div>
+  <div id="appShell" style="display:none">
+    <button class="sidebar-backdrop" data-close-menu type="button" hidden aria-label="Menü bezárása"></button>
+    <aside class="sidebar" id="sidebar">
       <a class="brand" href="./">
-        <span class="brand-text">eduKRÉTA</span>
+        <img class="brand-logo logo-for-light" src="kreten/brand/logo-dark.png" alt="" width="138" height="60" onerror="this.remove()">
+        <img class="brand-logo logo-for-dark" src="kreten/brand/logo-light.png" alt="" width="138" height="60" onerror="this.remove()">
+        <span style="font-weight:700;font-size:1.2rem">eduKRÉTA</span>
+        <span class="brand-description">A suli, átláthatóan.</span>
       </a>
-      <div class="brand-sub" style="padding:0 12px 12px;color:var(--text-muted);font-size:11px;">A suli, átláthatóan.</div>
-
-      <div class="nav-section">Napló</div>
-      <button type="button" class="k-nav-item active" data-page="dashboard"><i class="fa fa-home menu-fa"></i>Áttekintés</button>
-      <button type="button" class="k-nav-item" data-page="timetable"><i class="fa fa-calendar menu-fa"></i>Órarend</button>
-      <button type="button" class="k-nav-item" data-page="grades"><i class="fa fa-graduation-cap menu-fa"></i>Jegyek</button>
-      <button type="button" class="k-nav-item" data-page="absences"><i class="fa fa-clock-o menu-fa"></i>Hiányzások</button>
-      <button type="button" class="k-nav-item" data-page="homework"><i class="fa fa-book menu-fa"></i>Házi feladatok</button>
-      <button type="button" class="k-nav-item" data-page="tests"><i class="fa fa-pencil menu-fa"></i>Dolgozatok</button>
-      <button type="button" class="k-nav-item" data-page="notes"><i class="fa fa-info-circle menu-fa"></i>Feljegyzések</button>
-
-      <div class="nav-section">Iskolai élet</div>
-      <button type="button" class="k-nav-item" data-page="eugy"><i class="fa fa-envelope menu-fa"></i>Üzenetek</button>
-      <button type="button" class="k-nav-item" data-page="documents"><i class="fa fa-folder-open menu-fa"></i>Dokumentumok</button>
-      <button type="button" class="k-nav-item" data-page="lep"><i class="fa fa-star menu-fa"></i>LEP programok</button>
-      <button type="button" class="k-nav-item" data-page="dkt"><i class="fa fa-th-large menu-fa"></i>DKT</button>
-      <button type="button" class="k-nav-item" data-page="profile"><i class="fa fa-user menu-fa"></i>Profilom</button>
-
-      <div style="flex:1"></div>
-      <button type="button" class="k-nav-item" id="logoutBtn" style="margin-top:8px;"><i class="fa fa-sign-out menu-fa"></i>Kijelentkezés</button>
-    </nav>
-
-    <header class="main-header">
-      <button type="button" class="menu-toggle" id="menuBtn" aria-label="Menü">☰</button>
-      <div class="school-title">
-        <h3 id="instName">eduKRÉTA</h3>
-        <span id="tanev"></span>
+      <div class="nav-section-label">NAPLÓ</div>
+      <nav class="nav-list">
+<button type="button" class="nav-link is-active k-nav-item" data-page="dashboard"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></svg><span>Áttekintés</span><span class="nav-active-dot"></span></button>
+<button type="button" class="nav-link k-nav-item" data-page="timetable"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><span>Órarend</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="grades"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 10 2 2 5-5M8 16h8"/></svg><span>Jegyek</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="tests"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3v17h17M9 15v-4M14 15V7M19 15V4"/></svg><span>Dolgozatok</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="homework"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5C8 2 4 3 2 4v15c3-1 6-1 10 2 4-3 7-3 10-2V4c-2-1-6-2-10 1Z M12 5v16"/></svg><span>Házi feladatok</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="absences"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Hiányzások</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="notes"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 10 2 2 5-5M8 16h8"/></svg><span>Feljegyzések</span></button>
+      </nav>
+      <div class="nav-section-label">ISKOLAI ÉLET</div>
+      <nav class="nav-list">
+<button type="button" class="nav-link k-nav-item" data-page="eugy"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Üzenetek</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="lep"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>LEP programok</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="documents"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Dokumentumok</span></button>
+<button type="button" class="nav-link k-nav-item" data-page="dkt"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>DKT</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <nav class="nav-list"><button type="button" class="nav-link k-nav-item" data-page="profile"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Profilom</span></button></nav>
+        <button type="button" class="nav-link logout-button" id="logoutBtn"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4H4v16h5M10 12h11m-4-4 4 4-4 4"/></svg><span>Kijelentkezés</span></button>
+        <p class="sidebar-note">Független KRÉTA-kliens<br><span>eduKRÉTA · KRETÉN UI</span></p>
       </div>
-      <div class="usermenu">
-        <span class="username" id="userName">—</span>
-        <span class="usercode" id="userCode"></span>
-      </div>
-    </header>
-
-    <main class="main-content">
-      <div id="pageContent"></div>
-    </main>
-
-    <nav class="m-bottom-nav" id="bottomNav">
-      <button type="button" class="m-tab active" data-page="dashboard"><i class="fa fa-home"></i><span>Áttekintés</span></button>
-      <button type="button" class="m-tab" data-page="grades"><i class="fa fa-graduation-cap"></i><span>Jegyek</span></button>
-      <button type="button" class="m-tab" data-page="timetable"><i class="fa fa-calendar"></i><span>Órarend</span></button>
-      <button type="button" class="m-tab" data-page="homework"><i class="fa fa-book"></i><span>Házi</span></button>
-      <button type="button" class="m-tab" id="moreBtn"><span class="m-ico">☰</span><span>Több</span></button>
+    </aside>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="icon-button menu-toggle" id="menuBtn"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <span class="topbar-caption">Minden, ami a suliban történik.</span>
+        </div>
+        <div class="topbar-actions">
+          <span class="desktop-only topbar-label" id="instName">A te naplód.</span>
+          <button type="button" class="icon-button theme-toggle" data-theme-toggle><svg class="icon theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 13A9 9 0 0 1 11 3a9 9 0 1 0 10 10Z"/></svg><svg class="icon theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></button>
+          <span class="avatar-button" id="userName">—</span>
+          <span id="userCode" class="small muted" style="display:none"></span>
+          <span id="tanev" style="display:none"></span>
+        </div>
+      </header>
+      <main id="main-content" class="main-content"><div id="pageContent"></div></main>
+      <footer class="app-footer"><span>eduKRÉTA</span><span>KRETÉN megjelenés</span></footer>
+    </div>
+    <nav class="bottom-nav" id="bottomNav">
+      <button type="button" class="m-tab active" data-page="dashboard"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></svg><span>Áttekintés</span></button>
+      <button type="button" class="m-tab" data-page="timetable"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><span>Órarend</span></button>
+      <button type="button" class="m-tab" data-page="grades"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 10 2 2 5-5M8 16h8"/></svg><span>Jegyek</span></button>
+      <button type="button" class="m-tab" data-page="eugy"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Üzenetek</span></button>
+      <button type="button" id="moreBtn"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Továbbiak</span></button>
     </nav>
   </div>
   <div id="overlay" class="n-overlay"></div>
+  <script src="kreten/app.js" defer></script>
   <script src="app.js"></script>
 </body>
 </html>
