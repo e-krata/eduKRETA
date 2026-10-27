@@ -1,4 +1,4 @@
-const API_BASE = ""; // same origin
+const API_BASE = "edukreta.onrender.com"; // same origin
 
 function authHeader() {
   const u = sessionStorage.getItem("admin_user") || "";
