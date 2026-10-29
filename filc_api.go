@@ -107,23 +107,23 @@ func randomID() string {
 
 func (s *Server) registerFilcAPIRoutes(mux *http.ServeMux) {
 	// Public
-	mux.HandleFunc("/v1/public/school-list", s.handleFilcSchoolList)
-	mux.HandleFunc("/v1/public/news", s.handleFilcNews)
-	mux.HandleFunc("/v1/public/supporters", s.handleFilcSupporters)
+	mux.HandleFunc("filc/pub/v2/school-list", s.handleFilcSchoolList)
+	mux.HandleFunc("filc/pub/v2/news", s.handleFilcNews)
+	mux.HandleFunc("filc/pub/v2/supporters", s.handleFilcSupporters)
 
 	// Private
-	mux.HandleFunc("/v1/private/ads", s.handleFilcAds)
-	mux.HandleFunc("/v1/private/config", s.handleFilcConfig)
-	mux.HandleFunc("/v1/private/crash-report", s.handleFilcCrashReport)
+	mux.HandleFunc("/filc/private/v2/ads", s.handleFilcAds)
+	mux.HandleFunc("/filc/private/v2/config", s.handleFilcConfig)
+	mux.HandleFunc("/filc/private/v2/crash-report", s.handleFilcCrashReport)
 
 	// Share – specifikusabb route-ok előbb
-	mux.HandleFunc("/v2/shared/theme/add", s.handleFilcThemeAdd)
-	mux.HandleFunc("/v2/shared/theme/get/all", s.handleFilcThemeGetAll)
-	mux.HandleFunc("/v2/shared/theme/get/", s.handleFilcThemeGetByID)
+	mux.HandleFunc("/filc/share/v3/theme/add", s.handleFilcThemeAdd)
+	mux.HandleFunc("/filc/share/v3/get/all", s.handleFilcThemeGetAll)
+	mux.HandleFunc("/filc/share/v3/get/", s.handleFilcThemeGetByID)
 
-	mux.HandleFunc("/v2/shared/grade-colors/add", s.handleFilcGradeColorsAdd)
-	mux.HandleFunc("/v2/shared/grade-colors/get/all", s.handleFilcGradeColorsGetAll)
-	mux.HandleFunc("/v2/shared/grade-colors/get/", s.handleFilcGradeColorsGetByID)
+	mux.HandleFunc("/filc/share/v3/grade-colors/add", s.handleFilcGradeColorsAdd)
+	mux.HandleFunc("/filc/share/v3/grade-colors/get/all", s.handleFilcGradeColorsGetAll)
+	mux.HandleFunc("/filc/share/v3/grade-colors/get/", s.handleFilcGradeColorsGetByID)
 }
 
 // ---------- Public ----------
