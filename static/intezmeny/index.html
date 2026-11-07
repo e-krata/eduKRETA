@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eduKRÉTA – Intézmény</title>
+  <style>
+    :root { --bg:#0f1419; --card:#1a2332; --text:#e7ecf3; --muted:#8b9bb4; --accent:#3d8bfd; --border:#2a3548; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height:100vh; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 1.75rem; }
+    .muted { color: var(--muted); }
+    .code { font-family: ui-monospace, monospace; color: var(--accent); }
+    .actions { display: grid; gap: 10px; margin-top: 24px; }
+    a.btn { display:block; text-align:center; text-decoration:none; padding: 14px 16px; border-radius: 12px; font-weight: 600; }
+    a.primary { background: var(--accent); color: #fff; }
+    a.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .url-box { margin-top: 20px; padding: 12px; background: #0c1018; border-radius: 10px; font-size: 13px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <p class="muted" style="margin:0 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase">Intézményi kapu</p>
+      <h1 id="name">Betöltés…</h1>
+      <p class="muted">Kód: <span class="code" id="code">—</span></p>
+      <div class="actions">
+        <a class="btn primary" id="loginLink" href="/">Bejelentkezés</a>
+        <a class="btn ghost" id="adminLink" href="/intezmeny-admin/">Intézmény adminisztráció</a>
+        <a class="btn ghost" id="diakLink" href="/diak/">Diák felület</a>
+        <a class="btn ghost" id="tanarLink" href="/tanar/">Tanár felület</a>
+      </div>
+      <div class="url-box muted">
+        Egyedi URL: <span id="tenantUrl"></span><br/>
+        Subdomain (ha be van állítva): <span id="subUrl"></span>
+      </div>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    // path /i/{code}/ → middleware query institute_code
+    const code = params.get("institute_code") || params.get("code") || localStorage.getItem("institute_code") || "demo";
+    document.getElementById("code").textContent = code;
+    document.getElementById("tenantUrl").textContent = location.origin + "/i/" + encodeURIComponent(code) + "/";
+    document.getElementById("subUrl").textContent = code + ".«TENANT_BASE_DOMAIN»";
+    const q = "?institute_code=" + encodeURIComponent(code);
+    document.getElementById("loginLink").href = "/" + q;
+    document.getElementById("adminLink").href = "/intezmeny-admin/" + q;
+    document.getElementById("diakLink").href = "/diak/" + q;
+    document.getElementById("tanarLink").href = "/tanar/" + q;
+    fetch("/api/intezmeny/public?code=" + encodeURIComponent(code))
+      .then(r => r.json())
+      .then(j => {
+        document.getElementById("name").textContent = j.name || j.Name || code;
+        document.title = (j.name || code) + " · eduKRÉTA";
+        localStorage.setItem("institute_code", code);
+      })
+      .catch(() => { document.getElementById("name").textContent = code; });
+  </script>
+</body>
+</html>

@@ -126,6 +126,8 @@ func main() {
 	server.registerMessageRoutes(mux)
 	server.registerFilcAPIRoutes(mux)
 	server.registerKGRRoutes(mux)
+	server.registerKIRSZIRRoutes(mux)
+	server.registerIntezmenyAdminRoutes(mux)
 
 	server.registerMFARoutes(mux)
 
@@ -162,7 +164,7 @@ func main() {
 
 	log.Printf("ujkreta server listening on %s", addr)
 
-	handler := cors(logRequests(mux))
+	handler := tenantMiddleware(cors(logRequests(mux)))
 	serverHTTP := &http.Server{
 		Addr:              addr,
 		Handler:           handler,
@@ -177,32 +179,25 @@ func main() {
 // ============================================================
 
 var allowedOrigins = map[string]bool{
-	"https://puspus-dev.github.io": true,
-	"https://e-krata.github.io":    true,
-	"https://ekrata.ct.ws":         true,
-	"http://localhost:3000":        true,
-	"http://localhost:5173":        true,
-	"http://127.0.0.1:3000":        true,
-	"http://127.0.0.1:5173":        true,
+	"http://localhost:3000": true,
+	"http://localhost:5173": true,
+	"http://127.0.0.1:3000": true,
+	"http://127.0.0.1:5173": true,
 }
 
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-
-		allow := allowedOrigins[origin]
-		// helyi fejlesztés: bármely localhost port
-	if !allow && (strings.HasPrefix(origin, "http://localhost") ||
-	strings.HasPrefix(origin, "http://127.0.0.1") ||
-	strings.HasPrefix(origin, "capacitor://") ||
-	strings.HasPrefix(origin, "ionic://")) {
-	allow = true
-}
+		allow := allowedOrigins[origin] ||
+			strings.HasPrefix(origin, "http://localhost:") ||
+			strings.HasPrefix(origin, "http://127.0.0.1:") ||
+			strings.HasPrefix(origin, "capacitor://") ||
+			strings.HasPrefix(origin, "ionic://")
 
 		if allow && origin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, apiKey")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Vary", "Origin")
 		}
