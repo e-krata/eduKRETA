@@ -164,7 +164,7 @@ func main() {
 
 	log.Printf("ujkreta server listening on %s", addr)
 
-	handler := tenantMiddleware(cors(logRequests(mux)))
+	handler := cors(logRequests(mux))
 	serverHTTP := &http.Server{
 		Addr:              addr,
 		Handler:           handler,

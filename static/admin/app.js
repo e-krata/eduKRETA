@@ -339,6 +339,161 @@ function bindDanger() {
   });
 }
 
+
+async function pageKir() {
+  return `
+    <div class="hello">KIR kérelem</div>
+    <p class="hello-sub">Mock KIR login + kérelem beküldés / státusz (SOAP vagy JSON)</p>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Token kérése</div>
+      <div class="toolbar">
+        <button type="button" class="btn" id="kirTokenBtn">Token generálás</button>
+        <code id="kirTokenOut" style="font-size:12px;word-break:break-all"></code>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Kérelem beküldése</div>
+      <div class="toolbar" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+        <input id="kirExtId" placeholder="externalId (opcionális)" />
+        <input id="kirKontener" placeholder="kontenerId (opcionális)" />
+        <input id="kirIar" placeholder="IAR azonosító" />
+        <input id="kirCel" placeholder="Cél szolgáltatás" />
+      </div>
+      <textarea id="kirXml" rows="4" style="width:100%;margin:10px 0;border-radius:12px;padding:10px;background:var(--bg-elevated);border:1px solid var(--border);color:inherit" placeholder="Kerelem XML (opcionális)"></textarea>
+      <button type="button" class="btn" id="kirSendBtn">Beküldés</button>
+      <pre id="kirSendOut" style="margin-top:12px;font-size:12px;white-space:pre-wrap"></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Státusz lekérdezés</div>
+      <div class="toolbar">
+        <input id="kirStatusExt" placeholder="externalId" />
+        <input id="kirStatusKont" placeholder="kontenerId" />
+        <button type="button" class="btn" id="kirStatusBtn">Lekérdezés</button>
+      </div>
+      <pre id="kirStatusOut" style="margin-top:12px;font-size:12px;white-space:pre-wrap"></pre>
+    </div>`;
+}
+
+function bindKir() {
+  const base = typeof API_BASE !== "undefined" ? API_BASE : "";
+  document.getElementById("kirTokenBtn")?.addEventListener("click", async () => {
+    try {
+      const r = await fetch(base + "/kir/token", { method: "POST" });
+      const j = await r.json();
+      document.getElementById("kirTokenOut").textContent = j.access_token || JSON.stringify(j);
+    } catch (e) {
+      document.getElementById("kirTokenOut").textContent = String(e);
+    }
+  });
+  document.getElementById("kirSendBtn")?.addEventListener("click", async () => {
+    const body = {
+      externalId: document.getElementById("kirExtId").value.trim(),
+      kontenerId: document.getElementById("kirKontener").value.trim(),
+      iarAzonosito: document.getElementById("kirIar").value.trim(),
+      celSzolgaltatas: document.getElementById("kirCel").value.trim(),
+      kerelemXml: document.getElementById("kirXml").value
+    };
+    try {
+      const r = await fetch(base + "/kir/kerelem/bekuldes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const j = await r.json();
+      document.getElementById("kirSendOut").textContent = JSON.stringify(j, null, 2);
+      if (j.externalId) document.getElementById("kirStatusExt").value = j.externalId;
+      if (j.kontenerId) document.getElementById("kirStatusKont").value = j.kontenerId;
+    } catch (e) {
+      document.getElementById("kirSendOut").textContent = String(e);
+    }
+  });
+  document.getElementById("kirStatusBtn")?.addEventListener("click", async () => {
+    const body = {
+      externalId: document.getElementById("kirStatusExt").value.trim(),
+      kontenerId: document.getElementById("kirStatusKont").value.trim()
+    };
+    try {
+      const r = await fetch(base + "/kir/kerelem/statusz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      document.getElementById("kirStatusOut").textContent = JSON.stringify(await r.json(), null, 2);
+    } catch (e) {
+      document.getElementById("kirStatusOut").textContent = String(e);
+    }
+  });
+}
+
+async function pageSzir() {
+  return `
+    <div class="hello">SZIR – KSH 2535</div>
+    <p class="hello-sub">Státusz lekérdezés és adatszolgáltatás (mock)</p>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Státusz</div>
+      <div class="toolbar">
+        <input id="szirInst" placeholder="Intézményazonosító" value="demo" />
+        <input id="szirTanev" placeholder="Tanév ID" value="2025" />
+        <button type="button" class="btn" id="szirStatusBtn">Státusz lekérése</button>
+      </div>
+      <pre id="szirStatusOut" style="margin-top:12px;font-size:12px;white-space:pre-wrap"></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Adatszolgáltatás küldése</div>
+      <div class="toolbar">
+        <input id="szirAdatInst" placeholder="Intézményazonosító" value="demo" />
+        <input id="szirAdatTanev" placeholder="Tanév ID" value="2025" />
+        <input id="szirAdatAllapot" placeholder="Státusz állapot" value="1" />
+        <button type="button" class="btn" id="szirSendBtn">Küldés</button>
+      </div>
+      <pre id="szirSendOut" style="margin-top:12px;font-size:12px;white-space:pre-wrap"></pre>
+    </div>`;
+}
+
+function bindSzir() {
+  const base = typeof API_BASE !== "undefined" ? API_BASE : "";
+  document.getElementById("szirStatusBtn")?.addEventListener("click", async () => {
+    const body = {
+      IntezmenyAzonosito: document.getElementById("szirInst").value.trim(),
+      TanevId: Number(document.getElementById("szirTanev").value) || 2025
+    };
+    try {
+      const r = await fetch(base + "/szirstat/external/ksh2535/statusz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      document.getElementById("szirStatusOut").textContent = JSON.stringify(await r.json(), null, 2);
+    } catch (e) {
+      document.getElementById("szirStatusOut").textContent = String(e);
+    }
+  });
+  document.getElementById("szirSendBtn")?.addEventListener("click", async () => {
+    const body = {
+      IntezmenyAzonosito: document.getElementById("szirAdatInst").value.trim(),
+      TanevId: Number(document.getElementById("szirAdatTanev").value) || 2025,
+      StatuszAllapot: Number(document.getElementById("szirAdatAllapot").value) || 1,
+      FeladatEllatasiHelyek: []
+    };
+    try {
+      const r = await fetch(base + "/szirstat/external/ksh2535/adatszolg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      document.getElementById("szirSendOut").textContent = JSON.stringify(await r.json(), null, 2);
+    } catch (e) {
+      document.getElementById("szirSendOut").textContent = String(e);
+    }
+  });
+}
+
+
 const PAGES = {
   dashboard: { title: "Áttekintés", render: pageDashboard },
   users: { title: "Felhasználók", render: pageUsers, bind: bindUsers },
@@ -346,6 +501,8 @@ const PAGES = {
   institutions: { title: "Intézmények", render: pageInstitutions, bind: bindInstitutions },
   classgroups: { title: "Osztályok", render: pageClassgroups, bind: bindClassgroups },
   config: { title: "Konfig", render: pageConfig },
+  kir: { title: "KIR kérelem", render: pageKir, bind: bindKir },
+  szir: { title: "SZIR (KSH)", render: pageSzir, bind: bindSzir },
   health: { title: "Health", render: pageHealth },
   danger: { title: "Veszélyes", render: pageDanger, bind: bindDanger }
 };

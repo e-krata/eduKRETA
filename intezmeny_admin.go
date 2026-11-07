@@ -14,6 +14,17 @@ import (
 //   POST /api/intezmeny/classgroups
 //   GET  /api/intezmeny/kir/...  – UI proxy kényelemből
 
+
+func instituteFromRequest(r *http.Request) string {
+	if c := r.Header.Get("X-Edukreta-Institute"); c != "" {
+		return c
+	}
+	if c := r.URL.Query().Get("institute_code"); c != "" {
+		return c
+	}
+	return r.URL.Query().Get("code")
+}
+
 func (s *Server) registerIntezmenyAdminRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/intezmeny/info", s.requireAuthSession(s.handleIntezmenyInfo))
 	mux.HandleFunc("/api/intezmeny/users", s.requireAuthSession(s.handleIntezmenyUsers))
