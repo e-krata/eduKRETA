@@ -1,4 +1,4 @@
-const API_BASE = "https://edukreta.onrender.com"; // same origin
+const API_BASE = ""; // same origin
 
 function authHeader() {
   const u = sessionStorage.getItem("admin_user") || "";
@@ -174,21 +174,71 @@ function bindStudents() {
 async function pageInstitutions() {
   let list = [];
   try {
-    const r = await fetch(API_BASE + "/api/intezmenyek");
-    if (r.ok) list = await r.json();
-  } catch (_) {}
+    list = await adminFetch("/admin/institutions");
+  } catch (_) {
+    try {
+      const r = await fetch(API_BASE + "/api/intezmenyek");
+      if (r.ok) list = await r.json();
+    } catch (__) {}
+  }
   const rows = (Array.isArray(list) ? list : []).map(i =>
-    `<tr><td>${esc(i.code)}</td><td>${esc(i.name)}</td><td>${esc(i.shortName || "")}</td></tr>`
-  ).join("") || `<tr><td colspan="3">Nincs intézmény (futtasd a schema migrációt)</td></tr>`;
+    `<tr><td>${esc(i.code)}</td><td>${esc(i.name)}</td><td>${esc(i.shortName || "")}</td><td>${i.active === false ? "inaktív" : "aktív"}</td></tr>`
+  ).join("") || `<tr><td colspan="4">Nincs intézmény</td></tr>`;
   return `
     <div class="hello">Intézmények</div>
-    <p class="hello-sub">Forrás: GET /api/intezmenyek (Neon)</p>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Új intézmény (IntezményLétrehozó mezők)</div>
+      <div class="toolbar" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+        <input id="instCode" placeholder="Intézménykód *" />
+        <input id="instName" placeholder="Intézmény név *" />
+        <input id="instShort" placeholder="Rövid / település" />
+        <input id="instOm" placeholder="OM kód" />
+        <input id="instVezeto" placeholder="Intézményvezető" />
+        <input id="instEmail" placeholder="Email" />
+        <input id="instMegye" placeholder="Megye" />
+        <input id="instIrsz" placeholder="Irányítószám" />
+        <input id="instTelepules" placeholder="Település" />
+        <input id="instCim" placeholder="Közterület" />
+        <input id="instTanev" placeholder="Aktív tanév (2024/2025)" />
+        <button type="button" class="btn" id="instCreateBtn">Létrehozás</button>
+      </div>
+      <p class="hello-sub" style="margin-top:10px">Bulk: POST /admin/institutions JSON tömb, ugyanazokkal a mezőkkel (intezmenyKod, intezmenyNev, …)</p>
+    </div>
     <div class="card table-wrap">
       <table class="admin-table">
-        <thead><tr><th>Kód</th><th>Név</th><th>Rövid</th></tr></thead>
+        <thead><tr><th>Kód</th><th>Név</th><th>Rövid</th><th>Státusz</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+function bindInstitutions() {
+  document.getElementById("instCreateBtn")?.addEventListener("click", async () => {
+    const intezmenyKod = document.getElementById("instCode").value.trim();
+    const intezmenyNev = document.getElementById("instName").value.trim();
+    const shortName = document.getElementById("instShort").value.trim();
+    if (!intezmenyKod || !intezmenyNev) { alert("Intézménykód és név kötelező"); return; }
+    const body = {
+      intezmenyKod,
+      intezmenyNev,
+      shortName,
+      omKod: document.getElementById("instOm")?.value.trim() || "",
+      intezmenyVezeto: document.getElementById("instVezeto")?.value.trim() || "",
+      emailCim: document.getElementById("instEmail")?.value.trim() || "",
+      megye: document.getElementById("instMegye")?.value.trim() || "",
+      iranyitoszam: document.getElementById("instIrsz")?.value.trim() || "",
+      telepules: document.getElementById("instTelepules")?.value.trim() || shortName,
+      kozterulet: document.getElementById("instCim")?.value.trim() || "",
+      aktivTanev: document.getElementById("instTanev")?.value.trim() || ""
+    };
+    try {
+      await adminFetch("/admin/institutions", {
+        method: "POST",
+        body: JSON.stringify(body)
+      });
+      navigate("institutions");
+    } catch (e) { alert("Hiba: " + e.message); }
+  });
 }
 
 async function pageClassgroups() {
@@ -199,16 +249,55 @@ async function pageClassgroups() {
   const list = Array.isArray(data) ? data : (data.classGroups || data.items || []);
   const rows = list.map(g => {
     const d = g.data || g;
-    return `<tr><td>${esc(g.uid || d.Uid || "")}</td><td>${esc(d.Nev || d.Name || "")}</td></tr>`;
-  }).join("") || `<tr><td colspan="2">Üres</td></tr>`;
+    const uid = g.uid || d.Uid || "";
+    const nev = d.Nev || d.Name || "";
+    return `<tr>
+      <td>${esc(uid)}</td><td>${esc(nev)}</td>
+      <td><button type="button" class="btn-ghost del-cg" data-uid="${esc(uid)}">Törlés</button></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="3">Üres</td></tr>`;
   return `
     <div class="hello">Osztályok</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Új osztály</div>
+      <div class="toolbar">
+        <input id="cgUid" placeholder="UID (opcionális)" />
+        <input id="cgNev" placeholder="Név (pl. 9.A)" />
+        <input id="cgTipus" placeholder="Típus (opcionális)" />
+        <button type="button" class="btn" id="cgCreateBtn">Létrehozás</button>
+      </div>
+    </div>
     <div class="card table-wrap">
       <table class="admin-table">
-        <thead><tr><th>UID</th><th>Név</th></tr></thead>
+        <thead><tr><th>UID</th><th>Név</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+function bindClassgroups() {
+  document.getElementById("cgCreateBtn")?.addEventListener("click", async () => {
+    const Uid = document.getElementById("cgUid").value.trim();
+    const Nev = document.getElementById("cgNev").value.trim();
+    const Tipus = document.getElementById("cgTipus").value.trim();
+    if (!Nev) { alert("Név kötelező"); return; }
+    try {
+      await adminFetch("/admin/classgroups", {
+        method: "POST",
+        body: JSON.stringify({ Uid, Nev, Tipus })
+      });
+      navigate("classgroups");
+    } catch (e) { alert("Hiba: " + e.message); }
+  });
+  document.querySelectorAll(".del-cg").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Törlöd az osztályt?")) return;
+      try {
+        await adminFetch("/admin/classgroups?uid=" + encodeURIComponent(btn.dataset.uid), { method: "DELETE" });
+        navigate("classgroups");
+      } catch (e) { alert(e.message); }
+    });
+  });
 }
 
 async function pageConfig() {
@@ -254,8 +343,8 @@ const PAGES = {
   dashboard: { title: "Áttekintés", render: pageDashboard },
   users: { title: "Felhasználók", render: pageUsers, bind: bindUsers },
   students: { title: "Diákok", render: pageStudents, bind: bindStudents },
-  institutions: { title: "Intézmények", render: pageInstitutions },
-  classgroups: { title: "Osztályok", render: pageClassgroups },
+  institutions: { title: "Intézmények", render: pageInstitutions, bind: bindInstitutions },
+  classgroups: { title: "Osztályok", render: pageClassgroups, bind: bindClassgroups },
   config: { title: "Konfig", render: pageConfig },
   health: { title: "Health", render: pageHealth },
   danger: { title: "Veszélyes", render: pageDanger, bind: bindDanger }

@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -129,10 +131,32 @@ func (s *Store) CreateUserWithRole(
 // ============================================================
 
 type InstitutionRow struct {
-	Code      string `json:"code"`
-	Name      string `json:"name"`
-	ShortName string `json:"shortName,omitempty"`
-	Active    bool   `json:"active"`
+	Code      string         `json:"code"`
+	Name      string         `json:"name"`
+	ShortName string         `json:"shortName,omitempty"`
+	Active    bool           `json:"active"`
+	Data      map[string]any `json:"data,omitempty"`
+}
+
+// IntezmenyLetrehozo Excel / form mezők
+type IntezmenyLetrehozoRequest struct {
+	OMKod              string `json:"omKod"`
+	IntezmenyNev       string `json:"intezmenyNev"`
+	IntezmenyVezeto    string `json:"intezmenyVezeto"`
+	EmailCim           string `json:"emailCim"`
+	Tagintezmenykod    string `json:"tagintezmenykod"`
+	Megye              string `json:"megye"`
+	Iranyitoszam       string `json:"iranyitoszam"`
+	Telepules          string `json:"telepules"`
+	Kozterulet         string `json:"kozterulet"`
+	KozteruletJellege  string `json:"kozteruletJellege"`
+	Hazszam            string `json:"hazszam"`
+	FenntartoAzonosito string `json:"fenntartoAzonosito"`
+	IntezmenyKod       string `json:"intezmenyKod"`
+	AktivTanev         string `json:"aktivTanev"`
+	KovetkezoTanev     string `json:"kovetkezoTanev"`
+	AdminJelszo        string `json:"adminJelszo,omitempty"`
+	ShortName          string `json:"shortName,omitempty"`
 }
 
 func (s *Store) ListInstitutions() ([]InstitutionRow, error) {
@@ -172,6 +196,99 @@ func (s *Store) GetInstitution(code string) (InstitutionRow, error) {
 	}
 	return r, nil
 }
+
+func (s *Store) CreateInstitution(code, name, shortName string, active bool) error {
+	return s.CreateInstitutionWithData(code, name, shortName, active, nil)
+}
+
+func (s *Store) CreateInstitutionWithData(code, name, shortName string, active bool, data map[string]any) error {
+	ctx := context.Background()
+	if code == "" || name == "" {
+		return fmt.Errorf("code and name required")
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	// data oszlop opcionális – ha nincs migrálva, próbáljuk alap INSERT-tel
+	_, err = s.db.Exec(ctx, `
+		INSERT INTO institutions (code, name, short_name, active, data)
+		VALUES ($1, $2, $3, $4, $5::jsonb)
+		ON CONFLICT (code) DO UPDATE SET
+			name = EXCLUDED.name,
+			short_name = EXCLUDED.short_name,
+			active = EXCLUDED.active,
+			data = EXCLUDED.data
+	`, code, name, shortName, active, string(raw))
+	if err != nil {
+		// fallback ha nincs data oszlop
+		_, err2 := s.db.Exec(ctx, `
+			INSERT INTO institutions (code, name, short_name, active)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (code) DO UPDATE SET
+				name = EXCLUDED.name,
+				short_name = EXCLUDED.short_name,
+				active = EXCLUDED.active
+		`, code, name, shortName, active)
+		return err2
+	}
+	return nil
+}
+
+func (s *Store) CreateInstitutionFromLetrehozo(req IntezmenyLetrehozoRequest) error {
+	code := strings.TrimSpace(req.IntezmenyKod)
+	name := strings.TrimSpace(req.IntezmenyNev)
+	if code == "" || name == "" {
+		return fmt.Errorf("intezmenyKod and intezmenyNev required")
+	}
+	short := strings.TrimSpace(req.ShortName)
+	if short == "" {
+		short = strings.TrimSpace(req.Telepules)
+	}
+	data := map[string]any{
+		"omKod":              req.OMKod,
+		"intezmenyVezeto":    req.IntezmenyVezeto,
+		"emailCim":           req.EmailCim,
+		"tagintezmenykod":    req.Tagintezmenykod,
+		"megye":              req.Megye,
+		"iranyitoszam":       req.Iranyitoszam,
+		"telepules":          req.Telepules,
+		"kozterulet":         req.Kozterulet,
+		"kozteruletJellege":  req.KozteruletJellege,
+		"hazszam":            req.Hazszam,
+		"fenntartoAzonosito": req.FenntartoAzonosito,
+		"aktivTanev":         req.AktivTanev,
+		"kovetkezoTanev":     req.KovetkezoTanev,
+	}
+	return s.CreateInstitutionWithData(code, name, short, true, data)
+}
+
+
+func (s *Store) ListInstitutionsAll() ([]InstitutionRow, error) {
+	ctx := context.Background()
+	rows, err := s.db.Query(ctx, `
+		SELECT code, name, COALESCE(short_name, ''), active
+		FROM institutions
+		ORDER BY name
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []InstitutionRow
+	for rows.Next() {
+		var r InstitutionRow
+		if err := rows.Scan(&r.Code, &r.Name, &r.ShortName, &r.Active); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
 
 // GetUserByUsernameAndInstitute – ha van institute_code a user-nél, szűr.
 func (s *Store) GetUserByUsernameAndInstitute(username, instituteCode string) (User, error) {

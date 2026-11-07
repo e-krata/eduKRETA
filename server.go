@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -239,6 +240,7 @@ func (s *Server) registerAdminRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/admin/teacher", s.requireAdmin(s.handleAdminTeacher))
 	mux.HandleFunc("/admin/students", s.requireAdmin(s.handleAdminStudents))
 	mux.HandleFunc("/admin/classgroups", s.requireAdmin(s.handleAdminClassGroups))
+	mux.HandleFunc("/admin/institutions", s.requireAdmin(s.handleAdminInstitutions))
 	mux.HandleFunc("/admin/timetable-templates", s.requireAdmin(s.handleAdminTimetableTemplates))
 }
 
@@ -283,7 +285,8 @@ func (s *Server) handleAdminClassGroups(w http.ResponseWriter, r *http.Request) 
 	case http.MethodGet:
 		writeJSON(w, http.StatusOK, s.store.GetClassGroups())
 
-	case http.MethodPut, http.MethodPost:
+	case http.MethodPut:
+		// teljes lista csere
 		var groups []ClassGroup
 		if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
@@ -296,8 +299,151 @@ func (s *Server) handleAdminClassGroups(w http.ResponseWriter, r *http.Request) 
 			"groups":  s.store.GetClassGroups(),
 		})
 
+	case http.MethodPost:
+		// egy osztály létrehozása / frissítése
+		var body struct {
+			Uid  string `json:"Uid"`
+			Nev  string `json:"Nev"`
+			Tipus string `json:"Tipus"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
+			return
+		}
+		if strings.TrimSpace(body.Nev) == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "nev_required"})
+			return
+		}
+		if body.Uid == "" {
+			body.Uid = "CG-" + body.Nev
+		}
+		groups := s.store.GetClassGroups()
+		found := false
+		for i := range groups {
+			if groups[i].Uid == body.Uid {
+				groups[i].Nev = body.Nev
+				if body.Tipus != "" {
+					groups[i].Tipus = body.Tipus
+				}
+				groups[i].IsAktiv = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			groups = append(groups, ClassGroup{
+				Uid:     body.Uid,
+				Nev:     body.Nev,
+				Tipus:   body.Tipus,
+				IsAktiv: true,
+			})
+		}
+		s.store.SetClassGroups(groups)
+		writeJSON(w, http.StatusCreated, map[string]any{
+			"success": true,
+			"Uid":     body.Uid,
+			"Nev":     body.Nev,
+		})
+
+	case http.MethodDelete:
+		uid := r.URL.Query().Get("uid")
+		if uid == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing_uid"})
+			return
+		}
+		groups := s.store.GetClassGroups()
+		out := make([]ClassGroup, 0, len(groups))
+		for _, g := range groups {
+			if g.Uid == uid {
+				continue
+			}
+			out = append(out, g)
+		}
+		s.store.SetClassGroups(out)
+		writeJSON(w, http.StatusOK, map[string]any{"success": true, "deleted": uid})
+
 	default:
-		methodNotAllowed(w, "GET, PUT, POST")
+		methodNotAllowed(w, "GET, PUT, POST, DELETE")
+	}
+}
+
+func (s *Server) handleAdminInstitutions(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		list, err := s.store.ListInstitutionsAll()
+		if err != nil {
+			list, err = s.store.ListInstitutions()
+			if err != nil {
+				writeJSON(w, http.StatusOK, []InstitutionRow{})
+				return
+			}
+		}
+		writeJSON(w, http.StatusOK, list)
+
+	case http.MethodPost, http.MethodPut:
+		raw, err := io.ReadAll(r.Body)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "read_body"})
+			return
+		}
+		// bulk: [ {...}, {...} ]
+		var bulk []IntezmenyLetrehozoRequest
+		if err := json.Unmarshal(raw, &bulk); err == nil && len(bulk) > 0 && (bulk[0].IntezmenyKod != "" || bulk[0].IntezmenyNev != "") {
+			created := []string{}
+			errs := []string{}
+			for _, item := range bulk {
+				if err := s.store.CreateInstitutionFromLetrehozo(item); err != nil {
+					errs = append(errs, item.IntezmenyKod+": "+err.Error())
+					continue
+				}
+				created = append(created, item.IntezmenyKod)
+			}
+			writeJSON(w, http.StatusCreated, map[string]any{"success": len(errs) == 0, "created": created, "errors": errs})
+			return
+		}
+		// single letrehozo shape
+		var full IntezmenyLetrehozoRequest
+		if err := json.Unmarshal(raw, &full); err == nil && full.IntezmenyKod != "" && full.IntezmenyNev != "" {
+			if err := s.store.CreateInstitutionFromLetrehozo(full); err != nil {
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return
+			}
+			writeJSON(w, http.StatusCreated, map[string]any{"success": true, "code": full.IntezmenyKod, "name": full.IntezmenyNev})
+			return
+		}
+		// simple {code,name,shortName}
+		var body struct {
+			Code      string `json:"code"`
+			Name      string `json:"name"`
+			ShortName string `json:"shortName"`
+			Active    *bool  `json:"active"`
+		}
+		if err := json.Unmarshal(raw, &body); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_json"})
+			return
+		}
+		body.Code = strings.TrimSpace(body.Code)
+		body.Name = strings.TrimSpace(body.Name)
+		if body.Code == "" || body.Name == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "code_and_name_required"})
+			return
+		}
+		active := true
+		if body.Active != nil {
+			active = *body.Active
+		}
+		if err := s.store.CreateInstitution(body.Code, body.Name, body.ShortName, active); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusCreated, map[string]any{
+			"success": true,
+			"code":    body.Code,
+			"name":    body.Name,
+		})
+
+	default:
+		methodNotAllowed(w, "GET, POST, PUT")
 	}
 }
 

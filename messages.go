@@ -16,10 +16,15 @@ import (
 // ============================================================
 // E-ügyintézés üzenetek (KRÉTA mobil API formátum)
 //
-// GET  /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/sajat
-// GET  /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/{id}
-// POST /integration-kretamobile-api/v1/kommunikacio/uzenetek/olvasott
-// POST /integration-kretamobile-api/v1/kommunikacio/uzenetek  (küldés – mock extra)
+// Prefix: /integration-kretamobile-api/v1/  (és alias /api/v1/)
+// GET  .../kommunikacio/postaladaelemek/sajat
+// GET  .../kommunikacio/postaladaelemek/{id}
+// POST .../kommunikacio/uzenetek/olvasott
+// POST .../kommunikacio/uzenetek
+// POST .../kommunikacio/postaladaelemek/kuka
+// POST .../kommunikacio/postaladaelemek/torles
+// GET  .../adatszotarak/cimzetttipusok
+// GET  .../kommunikacio/cimezhetotipusok
 //
 // main.go-ban: server.registerMessageRoutes(mux)
 // ============================================================
@@ -279,6 +284,63 @@ func (ms *messageStore) send(req sendMessageRequest, ownerUID string) postaladaE
 	return elem
 }
 
+
+func (ms *messageStore) trash(ids []int, ownerUID string) int {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	n := 0
+	for i := range ms.items {
+		if ms.items[i].OwnerUID != ownerUID {
+			continue
+		}
+		for _, id := range ids {
+			if ms.items[i].Azonosito == id {
+				ms.items[i].IsToroltElem = true
+				n++
+				break
+			}
+		}
+	}
+	return n
+}
+
+func (ms *messageStore) deletePermanent(ids []int, ownerUID string) int {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	out := ms.items[:0]
+	n := 0
+	for _, it := range ms.items {
+		drop := false
+		if it.OwnerUID == ownerUID {
+			for _, id := range ids {
+				if it.Azonosito == id {
+					drop = true
+					n++
+					break
+				}
+			}
+		}
+		if !drop {
+			out = append(out, it)
+		}
+	}
+	// ha kapacitás miatt ugyanarra a slice-ra mutat, másoljuk
+	ms.items = append([]postaladaElem{}, out...)
+	return n
+}
+
+func (ms *messageStore) listTrashed(ownerUID string) []postaladaElem {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+	var out []postaladaElem
+	for _, it := range ms.items {
+		if it.OwnerUID == ownerUID && it.IsToroltElem {
+			out = append(out, it)
+		}
+	}
+	return out
+}
+
 // Persist optional JSON in DB (best-effort)
 func (s *Store) ensureMessagesTable() {
 	ctx := context.Background()
@@ -296,15 +358,27 @@ func (s *Server) registerMessageRoutes(mux *http.ServeMux) {
 	s.store.ensureMessagesTable()
 	globalMessages.ensureSeed(s.store)
 
-	const base = "/integration-kretamobile-api/v1/kommunikacio"
-	mux.HandleFunc(base+"/postaladaelemek/sajat", s.requireAuthSession(s.handlePostaladaSajat))
-	mux.HandleFunc(base+"/postaladaelemek/", s.requireAuthSession(s.handlePostaladaByID))
-	mux.HandleFunc(base+"/uzenetek/olvasott", s.requireAuthSession(s.handleUzenetOlvasott))
-	mux.HandleFunc(base+"/uzenetek", s.requireAuthSession(s.handleUzenetKuldes))
-	mux.HandleFunc(base+"/postaladaelemek/kuka", s.requireAuthSession(s.handleUzenetKuka))
-    mux.HandleFunc(base+"/postaladaelemek/torles", s.requireAuthSession(s.handleUzenetTorles))
-    mux.HandleFunc(base+"/cimezhetotipusok", s.requireAuthSession(s.handleCimezhetoTipusok))
-    mux.HandleFunc("/integration-kretamobile-api/v1/adatszotarak/cimzetttipusok", s.requireAuthSession(s.handleCimzettTipusok))
+	// Elsődleges: integration-kretamobile-api/v1/
+	const base = "/integration-kretamobile-api/v1"
+	mux.HandleFunc(base+"/kommunikacio/postaladaelemek/sajat", s.requireAuthSession(s.handlePostaladaSajat))
+	mux.HandleFunc(base+"/kommunikacio/postaladaelemek/kuka", s.requireAuthSession(s.handleUzenetKuka))
+	mux.HandleFunc(base+"/kommunikacio/postaladaelemek/torles", s.requireAuthSession(s.handleUzenetTorles))
+	mux.HandleFunc(base+"/kommunikacio/postaladaelemek/", s.requireAuthSession(s.handlePostaladaByID))
+	mux.HandleFunc(base+"/kommunikacio/uzenetek/olvasott", s.requireAuthSession(s.handleUzenetOlvasott))
+	mux.HandleFunc(base+"/kommunikacio/uzenetek", s.requireAuthSession(s.handleUzenetKuldes))
+	mux.HandleFunc(base+"/kommunikacio/cimezhetotipusok", s.requireAuthSession(s.handleCimezhetoTipusok))
+	mux.HandleFunc(base+"/adatszotarak/cimzetttipusok", s.requireAuthSession(s.handleCimzettTipusok))
+
+	// Alias: /api/v1/ (Filc KretaAdminEndpoints)
+	const api = "/api/v1"
+	mux.HandleFunc(api+"/kommunikacio/postaladaelemek/sajat", s.requireAuthSession(s.handlePostaladaSajat))
+	mux.HandleFunc(api+"/kommunikacio/postaladaelemek/kuka", s.requireAuthSession(s.handleUzenetKuka))
+	mux.HandleFunc(api+"/kommunikacio/postaladaelemek/torles", s.requireAuthSession(s.handleUzenetTorles))
+	mux.HandleFunc(api+"/kommunikacio/postaladaelemek/", s.requireAuthSession(s.handlePostaladaByID))
+	mux.HandleFunc(api+"/kommunikacio/uzenetek/olvasott", s.requireAuthSession(s.handleUzenetOlvasott))
+	mux.HandleFunc(api+"/kommunikacio/uzenetek", s.requireAuthSession(s.handleUzenetKuldes))
+	mux.HandleFunc(api+"/kommunikacio/cimezhetotipusok", s.requireAuthSession(s.handleCimezhetoTipusok))
+	mux.HandleFunc(api+"/adatszotarak/cimzetttipusok", s.requireAuthSession(s.handleCimzettTipusok))
 }
 
 func (s *Server) handlePostaladaSajat(w http.ResponseWriter, r *http.Request) {
@@ -415,55 +489,9 @@ func (s *Server) handleUzenetKuldes(w http.ResponseWriter, r *http.Request) {
 	elem := globalMessages.send(req, owner)
 	writeJSON(w, http.StatusCreated, elem)
 }
-// ---------- store ----------
 
-func (ms *messageStore) trash(ids []int, ownerUID string) int {
-	ms.mu.Lock()
-	defer ms.mu.Unlock()
-	n := 0
-	for i := range ms.items {
-		if ms.items[i].OwnerUID != ownerUID {
-			continue
-		}
-		for _, id := range ids {
-			if ms.items[i].Azonosito == id {
-				ms.items[i].IsToroltElem = true
-				n++
-				break
-			}
-		}
-	}
-	return n
-}
 
-func (ms *messageStore) deletePermanent(ids []int, ownerUID string) int {
-	ms.mu.Lock()
-	defer ms.mu.Unlock()
-	out := make([]postaladaElem, 0, len(ms.items))
-	n := 0
-	for _, it := range ms.items {
-		drop := false
-		if it.OwnerUID == ownerUID {
-			for _, id := range ids {
-				if it.Azonosito == id {
-					drop = true
-					n++
-					break
-				}
-			}
-		}
-		if !drop {
-			out = append(out, it)
-		}
-	}
-	ms.items = out
-	return n
-}
-
-// ---------- handlerek ----------
-
-// POST /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/kuka
-// body: { "uzenetAzonositoLista": [1001] }
+// POST body: { "uzenetAzonositoLista": [1,2] }  – kukába (soft delete)
 func (s *Server) handleUzenetKuka(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		methodNotAllowed(w, "POST, PUT")
@@ -490,8 +518,7 @@ func (s *Server) handleUzenetKuka(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"success": true, "count": n})
 }
 
-// POST /integration-kretamobile-api/v1/kommunikacio/postaladaelemek/torles
-// body: { "uzenetAzonositoLista": [1001] }
+// POST body: { "uzenetAzonositoLista": [1,2] }  – végleges törlés
 func (s *Server) handleUzenetTorles(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost && r.Method != http.MethodDelete {
 		methodNotAllowed(w, "POST, DELETE")
@@ -518,7 +545,7 @@ func (s *Server) handleUzenetTorles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"success": true, "count": n})
 }
 
-// GET /integration-kretamobile-api/v1/adatszotarak/cimzetttipusok
+// GET /api/v1/adatszotarak/cimzetttipusok
 func (s *Server) handleCimzettTipusok(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		methodNotAllowed(w, "GET")
@@ -534,7 +561,7 @@ func (s *Server) handleCimzettTipusok(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GET /integration-kretamobile-api/v1/kommunikacio/cimezhetotipusok
+// GET /api/v1/kommunikacio/cimezhetotipusok
 func (s *Server) handleCimezhetoTipusok(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		methodNotAllowed(w, "GET")
@@ -548,6 +575,7 @@ func (s *Server) handleCimezhetoTipusok(w http.ResponseWriter, r *http.Request) 
 		{"azonosito": 5, "kod": "IGAZGATOSAG", "nev": "Igazgatóság", "cimezheto": true},
 	})
 }
+
 
 // silence unused if fmt needed later
 var _ = fmt.Sprintf

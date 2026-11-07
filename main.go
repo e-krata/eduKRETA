@@ -124,6 +124,8 @@ func main() {
 	// ============================================================
 
 	server.registerMessageRoutes(mux)
+	server.registerFilcAPIRoutes(mux)
+	server.registerKGRRoutes(mux)
 
 	server.registerMFARoutes(mux)
 
